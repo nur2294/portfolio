@@ -119,7 +119,7 @@ export default function ContactClient() {
                 </div>
                 <button
                   type="submit"
-                  disabled={status === "sending" || status === "error"}
+                  disabled={status === "sending"}
                   className="w-full inline-flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2a4f7c 100%)", color: "white", boxShadow: "0 4px 20px rgba(30,58,95,0.30)" }}
                 >
