@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, CheckCircle2 } from "lucide-react";
+import { Mail, MapPin, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { sendContactEmail } from "@/app/actions/sendEmail";
 
 const contactInfo = [
-  { Icon: Mail, label: "E-posta", value: "nur.asiltas94@gmail.com", href: "mailto:nur.asiltas94@gmail.com" },
-  { Icon: Phone, label: "Telefon", value: "+90 (555) 000 00 00", href: "tel:+905550000000" },
+  { Icon: Mail, label: "E-posta", value: "nurasiltas@outlook.com", href: "mailto:nurasiltas@outlook.com" },
   { Icon: MapPin, label: "Konum", value: "İzmir, Türkiye", href: null },
 ];
 
@@ -23,7 +23,7 @@ const inputStyle = {
 };
 
 export default function ContactClient() {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [form, setForm] = useState({ name: "", email: "", company: "", subject: "", message: "" });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -33,8 +33,8 @@ export default function ContactClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("sending");
-    await new Promise((r) => setTimeout(r, 1500));
-    setStatus("sent");
+    const result = await sendContactEmail(form);
+    setStatus(result.success ? "sent" : "error");
   };
 
   return (
@@ -80,6 +80,13 @@ export default function ContactClient() {
                 <h3 className="text-2xl font-bold mb-3" style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}>Mesajınız İletildi!</h3>
                 <p style={{ color: "#64748b" }}>En kısa sürede size geri dönüş yapacağım.</p>
               </div>
+            ) : status === "error" ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-12 rounded-3xl bg-white" style={{ border: "1px solid #fecaca", boxShadow: "0 4px 24px rgba(30,58,95,0.08)" }}>
+                <AlertCircle size={56} style={{ color: "#ef4444" }} className="mb-4" />
+                <h3 className="text-2xl font-bold mb-3" style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}>Bir hata oluştu</h3>
+                <p style={{ color: "#64748b" }} className="mb-6">Lütfen doğrudan <a href="mailto:nurasiltas@outlook.com" style={{ color: "#1e3a5f", fontWeight: 600 }}>nurasiltas@outlook.com</a> adresine yazın.</p>
+                <button onClick={() => setStatus("idle")} className="px-6 py-2 rounded-xl text-sm font-semibold" style={{ background: "#1e3a5f", color: "white" }}>Tekrar Dene</button>
+              </div>
             ) : (
               <form onSubmit={handleSubmit} className="p-8 rounded-3xl bg-white" style={{ border: "1px solid #e2e8f0", boxShadow: "0 4px 24px rgba(30,58,95,0.08)" }}>
                 <div className="grid md:grid-cols-2 gap-5 mb-5">
@@ -112,7 +119,7 @@ export default function ContactClient() {
                 </div>
                 <button
                   type="submit"
-                  disabled={status === "sending"}
+                  disabled={status === "sending" || status === "error"}
                   className="w-full inline-flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2a4f7c 100%)", color: "white", boxShadow: "0 4px 20px rgba(30,58,95,0.30)" }}
                 >
