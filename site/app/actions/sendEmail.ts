@@ -24,7 +24,7 @@ export async function sendContactEmail(data: ContactFormData) {
   const subjectLabel = SUBJECT_LABELS[subject] ?? subject;
 
   try {
-    await resend.emails.send({
+      const { data: result, error } = await resend.emails.send({
       from:    "Portfolio İletişim <onboarding@resend.dev>",
       to:      process.env.CONTACT_TO_EMAIL!,
       replyTo: email,
@@ -68,8 +68,19 @@ export async function sendContactEmail(data: ContactFormData) {
         </div>
       `,
     });
+      if (error) {
+          console.error("Resend error:", error);
 
-    return { success: true };
+          return {
+              success: false,
+              error: error.message,
+          };
+      }
+
+      console.log("Resend success:", result);
+
+      return { success: true };
+
   } catch (err) {
     console.error("Email send error:", err);
     return { success: false, error: "Mail gönderilemedi." };
