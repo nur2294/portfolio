@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NephroDesk — Klinik Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+
+  /* Browser frame */
+  .frame { width: 1200px; background: #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.6); }
+  .frame-bar { background: #334155; height: 40px; display: flex; align-items: center; padding: 0 16px; gap: 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #22c55e; }
+  .url-bar { background: #1e293b; border-radius: 6px; flex: 1; height: 24px; margin: 0 16px; display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: #64748b; }
+
+  /* App shell */
+  .app { display: flex; height: 680px; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; background: #1e3a5f; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .logo-text { font-size: 15px; font-weight: 700; color: white; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .clinic-badge { margin: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; padding: 10px 12px; }
+  .clinic-name { font-size: 10px; color: rgba(255,255,255,0.80); font-weight: 600; line-height: 1.4; }
+  .nav-group { padding: 8px 0; }
+  .nav-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.30); padding: 8px 16px 4px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 12px; color: rgba(255,255,255,0.65); cursor: pointer; transition: all 0.15s; }
+  .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); color: white; }
+  .nav-item.active { background: rgba(201,168,76,0.15); color: #e2c47a; border-right: 3px solid #c9a84c; }
+  .nav-icon { width: 16px; height: 16px; border-radius: 4px; background: currentColor; opacity: 0.5; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .nav-badge { margin-left: auto; background: #ef4444; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; }
+
+  /* Main content */
+  .main { flex: 1; background: #f1f5f9; overflow-y: auto; display: flex; flex-direction: column; }
+  .topbar { background: white; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+  .page-title { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+  .page-sub { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .topbar-date { font-size: 11px; color: #64748b; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+  .avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg,#1e3a5f,#2a4f7c); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; }
+
+  /* Content area */
+  .content { padding: 20px 24px; flex: 1; overflow-y: auto; }
+
+  /* Stat cards */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat-card { background: white; border-radius: 12px; padding: 16px 18px; border: 1px solid #e2e8f0; box-shadow: 0 1px 6px rgba(30,58,95,0.05); }
+  .stat-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: #1e3a5f; line-height: 1; }
+  .stat-value.gold { color: #c9a84c; }
+  .stat-value.red { color: #ef4444; }
+  .stat-value.green { color: #10b981; }
+  .stat-footer { display: flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 10px; color: #94a3b8; }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* Main grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 340px; gap: 14px; }
+
+  /* Patient list */
+  .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+  .card-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; }
+  .card-title { font-size: 13px; font-weight: 700; color: #1e3a5f; }
+  .card-badge { font-size: 10px; background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 6px; }
+  .card-badge.blue { background: rgba(30,58,95,0.08); color: #1e3a5f; }
+  .table-header { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 0.8fr; gap: 8px; padding: 8px 18px; background: #f8fafc; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .table-row { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 0.8fr; gap: 8px; padding: 10px 18px; border-top: 1px solid #f1f5f9; align-items: center; }
+  .table-row:hover { background: #f8fafc; }
+  .patient-name { font-size: 12px; font-weight: 600; color: #1e293b; }
+  .patient-id { font-size: 10px; color: #94a3b8; }
+  .cell { font-size: 11px; color: #475569; }
+  .status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+  .status-active { background: rgba(16,185,129,0.10); color: #059669; }
+  .status-wait { background: rgba(245,158,11,0.10); color: #d97706; }
+  .status-done { background: rgba(100,116,139,0.10); color: #64748b; }
+  .status-alarm { background: rgba(239,68,68,0.10); color: #dc2626; }
+  .pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Right column */
+  .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Mini chart */
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; padding: 0 18px 14px; }
+  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; }
+  .bar-label { font-size: 9px; color: #94a3b8; }
+  .bar-val { font-size: 9px; font-weight: 700; color: #1e3a5f; }
+
+  /* Alert list */
+  .alert-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 18px; border-top: 1px solid #f1f5f9; }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .alert-text { font-size: 11px; color: #1e293b; font-weight: 500; line-height: 1.4; }
+  .alert-time { font-size: 9px; color: #94a3b8; margin-top: 1px; }
+
+  /* KTV widget */
+  .ktv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 18px; }
+  .ktv-item { background: #f8fafc; border-radius: 8px; padding: 10px 12px; border: 1px solid #f1f5f9; }
+  .ktv-label { font-size: 9px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+  .ktv-value { font-size: 18px; font-weight: 800; color: #1e3a5f; }
+  .ktv-value.ok { color: #10b981; }
+  .ktv-value.warn { color: #f59e0b; }
+  .ktv-sub { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="frame-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="url-bar">🔒 dialinelog.com/dashboard · 🔒 Confidential Client</div>
+  </div>
+  <div class="app">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-text">NephroDesk</div>
+        <div class="logo-sub">Clinical Management System</div>
+      </div>
+      <div class="clinic-badge">
+        <div class="clinic-name">🔒 Confidential Client</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Klinik</div>
+        <div class="nav-item active">
+          <span style="font-size:13px">📊</span> Dashboard
+        </div>
+        <div class="nav-item">
+          <span style="font-size:13px">👤</span> Hasta
+          <span class="nav-badge">3</span>
+        </div>
+        <div class="nav-item">
+          <span style="font-size:13px">💊</span> Seans
+        </div>
+        <div class="nav-item">
+          <span style="font-size:13px">🧪</span> Tahlil
+          <span class="nav-badge" style="background:#f59e0b">5</span>
+        </div>
+        <div class="nav-label">Entegrasyon</div>
+        <div class="nav-item">
+          <span style="font-size:13px">🏥</span> SGK Faturalama
+        </div>
+        <div class="nav-label">Yönetim</div>
+        <div class="nav-item">
+          <span style="font-size:13px">📋</span> Raporlar
+        </div>
+        <div class="nav-item">
+          <span style="font-size:13px">👥</span> Personel
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <div class="page-title">Klinik Dashboard</div>
+          <div class="page-sub">Günlük operasyon özeti</div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-date">📅 22 Mayıs 2025, Perşembe</div>
+          <div style="font-size:11px;color:#94a3b8">Hemşire A. Yıldız</div>
+          <div class="avatar">AY</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Aktif Hastalar</div>
+            <div class="stat-value">127</div>
+            <div class="stat-footer"><div class="stat-dot" style="background:#10b981"></div>Kayıtlı toplam</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Bugünkü Seanslar</div>
+            <div class="stat-value green">18</div>
+            <div class="stat-footer"><div class="stat-dot" style="background:#10b981;animation:pulse 1.5s infinite"></div>6 aktif seans</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Bekleyen Tahlil</div>
+            <div class="stat-value gold">5</div>
+            <div class="stat-footer"><div class="stat-dot" style="background:#f59e0b"></div>Sonuç bekleniyor</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Klinik Uyarı</div>
+            <div class="stat-value red">2</div>
+            <div class="stat-footer"><div class="stat-dot" style="background:#ef4444;animation:pulse 1.5s infinite"></div>Kritik değer</div>
+          </div>
+        </div>
+
+        <!-- Grid -->
+        <div class="grid-2">
+          <!-- Patient table -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Bugünkü Hasta Listesi</div>
+              <div class="card-badge blue">22 Mayıs 2025</div>
+            </div>
+            <div class="table-header">
+              <div>Hasta</div>
+              <div>Makine / Yatak</div>
+              <div>Seans Süresi</div>
+              <div>UF Hedef</div>
+              <div>Durum</div>
+            </div>
+            <div class="table-row">
+              <div><div class="patient-name">Mehmet K.</div><div class="patient-id">#DLZ-0421 · AV Fistül</div></div>
+              <div class="cell">M-04 / 7A</div>
+              <div class="cell">240 dk</div>
+              <div class="cell">2.5 L</div>
+              <div><span class="status-pill status-active"><span class="pulse"></span>Aktif</span></div>
+            </div>
+            <div class="table-row">
+              <div><div class="patient-name">Fatma Ş.</div><div class="patient-id">#DLZ-0389 · Kateter</div></div>
+              <div class="cell">M-07 / 7B</div>
+              <div class="cell">210 dk</div>
+              <div class="cell">3.0 L</div>
+              <div><span class="status-pill status-active"><span class="pulse"></span>Aktif</span></div>
+            </div>
+            <div class="table-row">
+              <div><div class="patient-name">Ali R.</div><div class="patient-id">#DLZ-0512 · AV Greft</div></div>
+              <div class="cell">M-02 / 5A</div>
+              <div class="cell">240 dk</div>
+              <div class="cell">2.0 L</div>
+              <div><span class="status-pill status-alarm"><span class="pulse"></span>Alarm!</span></div>
+            </div>
+            <div class="table-row">
+              <div><div class="patient-name">Ayşe D.</div><div class="patient-id">#DLZ-0298 · AV Fistül</div></div>
+              <div class="cell">M-09 / 8C</div>
+              <div class="cell">180 dk</div>
+              <div class="cell">1.8 L</div>
+              <div><span class="status-pill status-done">Tamamlandı</span></div>
+            </div>
+            <div class="table-row">
+              <div><div class="patient-name">Hasan T.</div><div class="patient-id">#DLZ-0445 · Kateter</div></div>
+              <div class="cell">—</div>
+              <div class="cell">240 dk</div>
+              <div class="cell">2.2 L</div>
+              <div><span class="status-pill status-wait">Bekliyor</span></div>
+            </div>
+            <div class="table-row">
+              <div><div class="patient-name">Emine Y.</div><div class="patient-id">#DLZ-0367 · AV Fistül</div></div>
+              <div class="cell">M-11 / 9A</div>
+              <div class="cell">240 dk</div>
+              <div class="cell">2.8 L</div>
+              <div><span class="status-pill status-active"><span class="pulse"></span>Aktif</span></div>
+            </div>
+          </div>
+
+          <!-- Right column -->
+          <div class="right-col">
+            <!-- Seans doluluk -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Seans Doluluk</div>
+                <div class="card-badge">Bu Hafta</div>
+              </div>
+              <div class="chart-bars">
+                <div class="bar-group"><div class="bar-val">16</div><div class="bar" style="height:55px;background:#1e3a5f"></div><div class="bar-label">Pzt</div></div>
+                <div class="bar-group"><div class="bar-val">18</div><div class="bar" style="height:65px;background:#1e3a5f"></div><div class="bar-label">Sal</div></div>
+                <div class="bar-group"><div class="bar-val">14</div><div class="bar" style="height:48px;background:#e2e8f0"></div><div class="bar-label">Çar</div></div>
+                <div class="bar-group"><div class="bar-val">18</div><div class="bar" style="height:65px;background:#c9a84c"></div><div class="bar-label">Per</div></div>
+                <div class="bar-group"><div class="bar-val">—</div><div class="bar" style="height:8px;background:#f1f5f9"></div><div class="bar-label">Cum</div></div>
+              </div>
+            </div>
+
+            <!-- Uyarılar -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Klinik Uyarılar</div>
+                <div class="card-badge" style="background:rgba(239,68,68,0.10);color:#dc2626">2 Kritik</div>
+              </div>
+              <div class="alert-item">
+                <div class="alert-dot" style="background:#ef4444"></div>
+                <div><div class="alert-text">Ali R. — Kan basıncı düştü (85/50 mmHg)</div><div class="alert-time">14:32 · M-02</div></div>
+              </div>
+              <div class="alert-item">
+                <div class="alert-dot" style="background:#f59e0b"></div>
+                <div><div class="alert-text">Fatma Ş. — Hb değeri düşük (8.2 g/dL)</div><div class="alert-time">Lab sonucu · 13:15</div></div>
+              </div>
+              <div class="alert-item">
+                <div class="alert-dot" style="background:#64748b"></div>
+                <div><div class="alert-text">Su analizi — Aylık rapor girilmedi</div><div class="alert-time">Hatırlatıcı</div></div>
+              </div>
+            </div>
+
+            <!-- Kt/V özet -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Aylık Kt/V Özet</div>
+                <div class="card-badge">Mayıs 2025</div>
+              </div>
+              <div class="ktv-grid">
+                <div class="ktv-item">
+                  <div class="ktv-label">Ort. Kt/V</div>
+                  <div class="ktv-value ok">1.42</div>
+                  <div class="ktv-sub">Hedef ≥ 1.20 ✓</div>
+                </div>
+                <div class="ktv-item">
+                  <div class="ktv-label">Ort. URR</div>
+                  <div class="ktv-value ok">72%</div>
+                  <div class="ktv-sub">Hedef ≥ 65% ✓</div>
+                </div>
+                <div class="ktv-item">
+                  <div class="ktv-label">Ort. Hb</div>
+                  <div class="ktv-value warn">10.1</div>
+                  <div class="ktv-sub">Hedef 10–12 ✓</div>
+                </div>
+                <div class="ktv-item">
+                  <div class="ktv-label">Hedef Uyum</div>
+                  <div class="ktv-value ok">84%</div>
+                  <div class="ktv-sub">Hasta bazında</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

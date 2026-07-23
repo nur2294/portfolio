@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicDesk — Toplu Hasta Görüntüleme</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 230px; background: #1a3a4a; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 14px 16px; background: #0f2535; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a4a5a; }
+  .sidebar-logo .logo-icon { width: 32px; height: 32px; background: #2a9d8f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .sidebar-logo .logo-text { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+  .sidebar-logo .logo-sub { color: #7fbbcc; font-size: 9px; }
+  .sidebar-section { padding: 8px 10px 4px; color: #7fbbcc; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar-item { padding: 9px 14px; color: #c8dde4; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 9px; border-radius: 6px; margin: 1px 6px; transition: background 0.15s; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.06); }
+  .sidebar-item.active { background: #2a9d8f; color: #fff; }
+  .sidebar-item.sub { padding-left: 32px; font-size: 11px; color: #a0c4cc; }
+  .sidebar-item.sub.active { background: rgba(42,157,143,0.3); color: #fff; }
+  .sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  /* Header */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { background: #1a3a4a; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2a9d8f; flex-shrink: 0; }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-title { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; }
+  .topbar-subtitle { color: #7fbbcc; font-size: 11px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .topbar-badge { background: rgba(42,157,143,0.2); border: 1px solid #2a9d8f; color: #7fdbcc; font-size: 10px; padding: 4px 10px; border-radius: 20px; }
+  .profile-btn { background: #2a9d8f; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; }
+
+  /* Content */
+  .content { flex: 1; overflow-y: auto; padding: 16px; }
+
+  /* Toolbar */
+  .toolbar { background: #fff; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .search-box { flex: 1; position: relative; }
+  .search-box input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; outline: none; background: #f8fafb; }
+  .search-box .s-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #7fbbcc; font-size: 13px; }
+  .filter-select { padding: 8px 12px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; background: #f8fafb; outline: none; }
+  .count-badge { background: #e8f4f7; color: #1a3a4a; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; white-space: nowrap; }
+  .new-btn { background: #2a9d8f; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+
+  /* Patient Grid */
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .card { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #e8eef2; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(42,157,143,0.15); border-color: #2a9d8f; }
+  .card-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .card-name { font-size: 12px; font-weight: 700; color: #1a3a4a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-tc { font-size: 10px; color: #7f9aaa; font-family: monospace; margin-bottom: 8px; }
+  .card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .card-label { font-size: 9px; color: #9ab0bb; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .card-value { font-size: 10px; color: #334; font-weight: 600; }
+  .blood-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; }
+  .blood-A\+ { background: #ffeaea; color: #c0392b; }
+  .blood-B\+ { background: #fff3e0; color: #e67e22; }
+  .blood-O\+ { background: #e8f4fd; color: #2980b9; }
+  .blood-AB\+ { background: #f3e5f5; color: #8e44ad; }
+  .blood-A- { background: #fce4ec; color: #ad1457; }
+  .blood-O- { background: #e3f2fd; color: #1565c0; }
+  .blood-B- { background: #fff8e1; color: #f57f17; }
+  .card-divider { border: none; border-top: 1px solid #f0f4f6; margin: 8px 0; }
+  .card-actions { display: flex; gap: 5px; }
+  .btn-action { flex: 1; padding: 5px 6px; border: none; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; }
+  .btn-muayene { background: #e8f4f0; color: #1a6b5a; }
+  .btn-lab { background: #e8eef7; color: #1a3a6b; }
+  .card-doctor { font-size: 9px; color: #9ab0bb; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-doctor span { color: #2a9d8f; font-weight: 600; }
+
+  /* Pagination */
+  .pagination { margin-top: 16px; display: flex; align-items: center; justify-content: between; gap: 8px; }
+  .page-info { font-size: 11px; color: #7f9aaa; flex: 1; }
+  .page-btn { width: 30px; height: 30px; border: 1px solid #d1e5ec; border-radius: 6px; background: #fff; color: #1a3a4a; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .page-btn.active { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏥</div>
+    <div>
+      <div class="logo-text">ClinicDesk</div>
+      <div class="logo-sub">Poliklinik Yönetim Sistemi</div>
+    </div>
+  </div>
+
+  <div style="padding: 10px 0; flex: 1; overflow-y: auto;">
+    <div class="sidebar-section">Ana Menü</div>
+    <div class="sidebar-item active">
+      <span class="sidebar-icon">👥</span> Toplu Hasta Görüntüle
+    </div>
+    <div class="sidebar-item">
+      <span class="sidebar-icon">📅</span> Takvim - Randevu
+    </div>
+
+    <div class="sidebar-section" style="margin-top: 6px;">Hasta İşlemleri</div>
+    <div class="sidebar-item sub">Yeni Hasta Tanımlama</div>
+    <div class="sidebar-item sub">Hasta Güncelleme</div>
+    <div class="sidebar-item sub">Muayene</div>
+    <div class="sidebar-item sub">Hasta Takibi</div>
+    <div class="sidebar-item sub">Patoloji</div>
+    <div class="sidebar-item sub">İlaç Tedavisi</div>
+    <div class="sidebar-item sub">Laboratuar</div>
+    <div class="sidebar-item sub">Hasta Dokümanı</div>
+    <div class="sidebar-item sub">Hasta Listesi</div>
+    <div class="sidebar-item sub">Epikriz</div>
+    <div class="sidebar-item sub">Laboratuar Tetkik İstem</div>
+
+    <div class="sidebar-section" style="margin-top: 6px;">Sistem</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📊</span> Raporlar</div>
+    <div class="sidebar-item"><span class="sidebar-icon">⚙️</span> Ayarlar</div>
+  </div>
+
+  <div style="padding: 12px; border-top: 1px solid #2a4a5a;">
+    <div style="font-size: 10px; color: #5a8090;">Bağlı Kullanıcı</div>
+    <div style="font-size: 11px; color: #c8dde4; font-weight: 600; margin-top: 2px;">🔒 Confidential Client</div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title">🔒 Confidential Client — Poliklinik</div>
+        <div class="topbar-subtitle">ClinicDesk · Hasta Yönetim Modülü</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-badge">📅 Bugün: Çarşamba, 08 Oca 2025</div>
+      <div class="topbar-badge">🟢 Sistem Aktif</div>
+      <button class="profile-btn">👤 Profil</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="s-icon">🔍</span>
+        <input type="text" placeholder="Hasta adı, TC, telefon ile ara..." />
+      </div>
+      <select class="filter-select">
+        <option>Tüm Doktorlar</option>
+        <option>Dr. Ahmet K.</option>
+        <option>Dr. Fatma S.</option>
+        <option>Dr. Murat D.</option>
+      </select>
+      <select class="filter-select">
+        <option>Kan Grubu - Hepsi</option>
+        <option>A+</option><option>A-</option>
+        <option>B+</option><option>B-</option>
+        <option>O+</option><option>O-</option>
+        <option>AB+</option>
+      </select>
+      <div class="count-badge">Toplam: 1.144 Hasta</div>
+      <button class="new-btn">+ Yeni Hasta</button>
+    </div>
+
+    <!-- Patient Grid -->
+    <div class="grid">
+
+      <!-- Patient 1 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #2a9d8f;">AY</div>
+          <div>
+            <div class="card-name">Ahmet Y.</div>
+            <div class="card-tc">TC: ***4821</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">52</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-A+">A+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">02.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Ahmet K.</span></div>
+      </div>
+
+      <!-- Patient 2 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #e76f51;">FD</div>
+          <div>
+            <div class="card-name">Fatma D.</div>
+            <div class="card-tc">TC: ***7634</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">38</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-B+">B+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">05.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Fatma S.</span></div>
+      </div>
+
+      <!-- Patient 3 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #264653;">MK</div>
+          <div>
+            <div class="card-name">Mehmet K.</div>
+            <div class="card-tc">TC: ***2290</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">65</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-O+">O+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">06.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Murat D.</span></div>
+      </div>
+
+      <!-- Patient 4 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #8e44ad;">ZA</div>
+          <div>
+            <div class="card-name">Zeynep A.</div>
+            <div class="card-tc">TC: ***5517</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">44</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-AB+">AB+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">03.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Ahmet K.</span></div>
+      </div>
+
+      <!-- Patient 5 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #c0392b;">HB</div>
+          <div>
+            <div class="card-name">Hasan B.</div>
+            <div class="card-tc">TC: ***8803</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">71</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-A-">A-</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">07.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Fatma S.</span></div>
+      </div>
+
+      <!-- Patient 6 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #2980b9;">EY</div>
+          <div>
+            <div class="card-name">Elif Y.</div>
+            <div class="card-tc">TC: ***3391</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">29</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-O-">O-</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">04.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Murat D.</span></div>
+      </div>
+
+      <!-- Patient 7 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #16a085;">OS</div>
+          <div>
+            <div class="card-name">Osman S.</div>
+            <div class="card-tc">TC: ***6628</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">58</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-B+">B+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">01.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Ahmet K.</span></div>
+      </div>
+
+      <!-- Patient 8 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #d35400;">NK</div>
+          <div>
+            <div class="card-name">Nesrin K.</div>
+            <div class="card-tc">TC: ***9045</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">47</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-A+">A+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">06.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Fatma S.</span></div>
+      </div>
+
+      <!-- Patient 9 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #27ae60;">BT</div>
+          <div>
+            <div class="card-name">Bülent T.</div>
+            <div class="card-tc">TC: ***1174</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">63</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-O+">O+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">07.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Murat D.</span></div>
+      </div>
+
+      <!-- Patient 10 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #6c3483;">SA</div>
+          <div>
+            <div class="card-name">Songül A.</div>
+            <div class="card-tc">TC: ***7756</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">35</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-B-">B-</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">03.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Ahmet K.</span></div>
+      </div>
+
+      <!-- Patient 11 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #1a5276;">KY</div>
+          <div>
+            <div class="card-name">Kemal Y.</div>
+            <div class="card-tc">TC: ***4432</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">79</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-A+">A+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">05.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Fatma S.</span></div>
+      </div>
+
+      <!-- Patient 12 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #7f8c8d;">RO</div>
+          <div>
+            <div class="card-name">Rabia Ö.</div>
+            <div class="card-tc">TC: ***8819</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">41</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-AB+">AB+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">02.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Murat D.</span></div>
+      </div>
+
+      <!-- Patient 13 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #17a589;">IC</div>
+          <div>
+            <div class="card-name">İbrahim C.</div>
+            <div class="card-tc">TC: ***3367</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">56</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-O+">O+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">04.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Ahmet K.</span></div>
+      </div>
+
+      <!-- Patient 14 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #a04000;">DP</div>
+          <div>
+            <div class="card-name">Derya P.</div>
+            <div class="card-tc">TC: ***2253</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">33</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-B+">B+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">06.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Fatma S.</span></div>
+      </div>
+
+      <!-- Patient 15 -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+          <div class="card-avatar" style="background: #2471a3;">TG</div>
+          <div>
+            <div class="card-name">Tarık G.</div>
+            <div class="card-tc">TC: ***6680</div>
+          </div>
+        </div>
+        <div class="card-row"><span class="card-label">Yaş</span><span class="card-value">60</span></div>
+        <div class="card-row"><span class="card-label">Kan Grubu</span><span class="blood-badge blood-A+">A+</span></div>
+        <div class="card-row"><span class="card-label">Son Muayene</span><span class="card-value" style="font-size:9px;">07.01.2025</span></div>
+        <hr class="card-divider"/>
+        <div class="card-actions">
+          <button class="btn-action btn-muayene">🩺 Muayene</button>
+          <button class="btn-action btn-lab">🔬 Lab</button>
+        </div>
+        <div class="card-doctor">Dr: <span>Dr. Murat D.</span></div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <div class="page-info">Gösterilen: 1–15 / 1.144 hasta &nbsp;|&nbsp; Sayfa 1 / 77</div>
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">3</button>
+      <button class="page-btn">...</button>
+      <button class="page-btn">77</button>
+      <button class="page-btn">›</button>
+    </div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+</body>
+</html>

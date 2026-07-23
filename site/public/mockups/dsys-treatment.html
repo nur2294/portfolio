@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NephroGlobal — Daily Treatment</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.frame{width:1200px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.5)}
+.frame-bar{background:#334155;height:38px;display:flex;align-items:center;padding:0 16px;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+.url-bar{background:#1e293b;border-radius:6px;flex:1;height:24px;margin:0 16px;display:flex;align-items:center;padding:0 12px;font-size:11px;color:#64748b}
+
+.app{display:flex;height:660px}
+
+.sidebar{width:220px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sidebar-brand{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e5e7eb}
+.brand-text{font-size:13px;font-weight:700;color:#1f6b6b}
+.search-input{width:calc(100% - 24px);margin:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:6px 10px;font-size:11px;color:#9ca3af;display:flex;align-items:center;justify-content:space-between}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;font-size:12px;color:#374151;border-bottom:1px solid #f9fafb;font-weight:500}
+.nav-item.active{background:#1f6b6b;color:white;font-weight:700}
+.nav-item.open{background:#f0fafa;color:#1f6b6b;font-weight:700;border-left:3px solid #1f6b6b}
+.sub-item{padding:8px 16px 8px 28px;font-size:11px;color:#6b7280;border-bottom:1px solid #f9fafb;display:flex;align-items:center;gap:6px}
+.sub-item.active{color:#1f6b6b;font-weight:600;background:#f0fafa}
+.sub-dot{width:6px;height:6px;border-radius:50%;background:#1f6b6b;flex-shrink:0}
+.chevron{font-size:10px;color:#9ca3af}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:#1f6b6b;height:48px;display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.patient-nav{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:4px 12px}
+.patient-nav .avatar{width:24px;height:24px;border-radius:50%;background:#e2c47a;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1e3a5f}
+.patient-nav .name{font-size:11px;font-weight:700;color:white}
+.patient-nav .id{font-size:10px;color:rgba(255,255,255,0.70)}
+.patient-nav .tags{display:flex;gap:3px;margin-left:6px}
+.patient-nav .tag{font-size:9px;font-weight:700;color:rgba(255,255,255,0.80);background:rgba(255,255,255,0.12);padding:1px 4px;border-radius:3px}
+.nav-arrow{color:white;font-size:14px;cursor:pointer;opacity:0.8}
+.close-btn{color:white;font-size:14px;opacity:0.7;margin:0 4px}
+.ml-auto{margin-left:auto}
+.clinic-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px}
+.profile-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:20px;padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px}
+
+.breadcrumb-bar{padding:8px 20px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;color:#6b7280;display:flex;align-items:center;gap:6px}
+
+.content{flex:1;padding:16px 20px;overflow-y:auto}
+
+/* Patient card */
+.patient-card{background:white;border:1px solid #e5e7eb;border-radius:8px;display:grid;grid-template-columns:220px 1fr 1fr 200px;margin-bottom:14px;overflow:hidden}
+.patient-id-col{padding:16px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;align-items:center;gap:8px}
+.patient-avatar-big{width:70px;height:70px;border-radius:50%;border:3px solid #e879f9;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:28px}
+.patient-name-big{font-size:14px;font-weight:700;color:#111827;text-align:center}
+.patient-details{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;font-size:10px;width:100%}
+.pd-label{color:#9ca3af;font-size:9px;text-transform:uppercase;margin-bottom:1px}
+.pd-value{font-weight:700;color:#111827}
+.blood-info{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#dc2626}
+.section-col{padding:12px 16px;border-right:1px solid #e5e7eb}
+.section-title{font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;background:#f9fafb;padding:4px 8px;margin:-12px -16px 10px;border-bottom:1px solid #e5e7eb}
+.section-text{font-size:11px;color:#374151}
+.info-tags{display:flex;flex-wrap:wrap;gap:4px}
+.info-tag{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700}
+.tag-gray{background:#f3f4f6;color:#374151}
+
+/* Date */
+.date-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.date-input{border:1px solid #e5e7eb;border-radius:6px;padding:8px 14px;font-size:14px;font-weight:600;color:#111827;flex:1;max-width:340px;display:flex;align-items:center;justify-content:space-between}
+
+/* Step wizard */
+.steps{display:flex;border-bottom:1px solid #e5e7eb;margin-bottom:16px;background:#f9fafb;border-radius:8px 8px 0 0;overflow:hidden}
+.step{padding:10px 16px;font-size:11px;color:#9ca3af;cursor:pointer;border-right:1px solid #e5e7eb;white-space:nowrap}
+.step.active{background:#1f6b6b;color:white;font-weight:700}
+.step.done{background:#f0fafa;color:#1f6b6b}
+.step-title{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;opacity:0.75}
+.step-label{font-size:11px;font-weight:600}
+
+/* Form grid */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.form-section{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.form-section-title{background:#1f6b6b;color:white;font-size:11px;font-weight:700;padding:7px 14px;text-transform:uppercase;letter-spacing:0.5px}
+.form-section-title.purple{background:#7c3aed}
+.form-rows{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.form-row{display:grid;grid-template-columns:160px 1fr;align-items:center;gap:8px}
+.form-label{font-size:11px;color:#374151;font-weight:500}
+.form-input{background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:5px 10px;font-size:11px;color:#374151;min-height:28px}
+.form-input.filled{background:#fff;color:#111827;font-weight:500}
+
+/* Buttons */
+.btn-bar{display:flex;gap:8px;margin-top:14px}
+.btn{padding:7px 18px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none}
+.btn-teal{background:#1f6b6b;color:white}
+.btn-orange{background:#f97316;color:white}
+.btn-gray{background:#e5e7eb;color:#374151}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="frame-bar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <div class="url-bar">🔒 nephroglobal.app/treatment/daily — 🔒 Confidential Client</div>
+  </div>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-brand"><div class="brand-text">NephroGlobal</div><div style="margin-left:auto;color:#9ca3af">☰</div></div>
+      <div class="search-input"><span>Search ...</span><span>🔍</span></div>
+      <div class="nav-item">DASHBOARD</div>
+      <div class="nav-item">Translator</div>
+      <div class="nav-item">Patient <span class="chevron">›</span></div>
+      <div class="nav-item">Laboratory <span class="chevron">›</span></div>
+      <div class="nav-item">Referral <span class="chevron">›</span></div>
+      <div class="nav-item open">Treatment <span class="chevron">▾</span></div>
+      <div class="sub-item active"><div class="sub-dot"></div>Daily Treatment</div>
+      <div class="sub-item">Daily Treatment Monitoring</div>
+      <div class="sub-item">Daily Treatment List</div>
+      <div class="sub-item">Daily Session</div>
+      <div class="sub-item">Session Treatment Plan</div>
+      <div class="sub-item">Real Time Monitoring (Rtmon)</div>
+      <div class="sub-item">Assessment</div>
+      <div class="sub-item">Shift Planning</div>
+      <div class="sub-item">Room Temp and Humidity</div>
+      <div class="nav-item">Incident Management <span class="chevron">›</span></div>
+      <div class="nav-item">Reports <span class="chevron">›</span></div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="nav-arrow">◀</div>
+        <div class="patient-nav">
+          <div class="avatar">PT</div>
+          <div>
+            <div class="name">Patient — Demo</div>
+            <div class="id">ID: 7429 41</div>
+          </div>
+          <div class="tags">
+            <span class="tag">A</span><span class="tag">B</span><span class="tag">C</span><span class="tag">H</span><span class="tag">D</span>
+          </div>
+          <span class="close-btn">✕</span>
+        </div>
+        <div class="nav-arrow">▶</div>
+        <div class="ml-auto" style="display:flex;gap:8px">
+          <div class="clinic-btn">🏥 Confidential Client ▾</div>
+          <div class="profile-btn">👤 PROFILE ▾</div>
+        </div>
+      </div>
+      <div class="breadcrumb-bar">
+        <span style="color:#1f6b6b">🏠</span> Patient Care <span>/</span>
+        <span style="color:#1f6b6b">👤</span> Treatment <span>/</span>
+        <strong>Daily Treatment</strong>
+      </div>
+
+      <div class="content">
+        <!-- Patient card -->
+        <div class="patient-card">
+          <div class="patient-id-col">
+            <div class="patient-avatar-big">👤</div>
+            <div class="patient-name-big">Demo Patient<br><span style="font-size:11px;color:#6b7280;font-weight:400">🔒 Confidential</span></div>
+            <div class="patient-details">
+              <div><div class="pd-label">Age</div><div class="pd-value">–</div></div>
+              <div><div class="pd-label">Gender</div><div class="pd-value">–</div></div>
+              <div><div class="pd-label">Info</div><div class="info-tags"><span class="info-tag tag-gray">A</span><span class="info-tag tag-gray">B</span><span class="info-tag tag-gray">C</span><span class="info-tag tag-gray">H</span><span class="info-tag tag-gray">D</span></div></div>
+            </div>
+            <div class="blood-info">🩸 0 negative</div>
+          </div>
+          <div class="section-col">
+            <div class="section-title">Allergies</div>
+            <div class="section-text" style="color:#6b7280;font-style:italic">No defined allergies</div>
+          </div>
+          <div class="section-col">
+            <div class="section-title">Comorbidities</div>
+            <div class="section-text">Chronic Kidney Disease (CKD Stage 5)</div>
+            <div class="section-text" style="margin-top:4px;color:#6b7280">Hypertension · Type 2 Diabetes</div>
+          </div>
+          <div class="section-col" style="border-right:none">
+            <div class="section-title">Service / Station Info</div>
+            <div class="form-input filled" style="margin-bottom:6px">HDF</div>
+            <div class="section-title" style="margin:6px -16px;padding:4px 8px">Station Info</div>
+            <div class="form-input" style="margin-bottom:6px"></div>
+            <div class="section-title" style="margin:6px -16px;padding:4px 8px">Session Info</div>
+            <div class="form-input"></div>
+          </div>
+        </div>
+
+        <!-- Date bar -->
+        <div class="date-bar">
+          <div class="date-input">
+            <span>22/05/2026 &nbsp;&nbsp; 02 : 57 : 06 PM</span>
+            <span style="color:#9ca3af">📅</span>
+          </div>
+        </div>
+
+        <!-- Step wizard -->
+        <div class="steps">
+          <div class="step active">
+            <div class="step-title">Step 1</div>
+            <div class="step-label">Dialysis Prescription</div>
+          </div>
+          <div class="step done">
+            <div class="step-title">Step 2</div>
+            <div class="step-label">Beginning Of Treatment</div>
+          </div>
+          <div class="step">
+            <div class="step-title">Step 3</div>
+            <div class="step-label">During Treatment</div>
+          </div>
+          <div class="step">
+            <div class="step-title">Step 4</div>
+            <div class="step-label">End Of Treatment</div>
+          </div>
+          <div class="step">
+            <div class="step-title">Step 5</div>
+            <div class="step-label">Summary Of Treatment</div>
+          </div>
+          <div class="step" style="border-right:none">
+            <div class="step-title">Chat</div>
+            <div class="step-label">Message</div>
+          </div>
+          <div class="step" style="border-right:none">
+            <div class="step-title">Warning</div>
+            <div class="step-label">Machine Warning/Error</div>
+          </div>
+        </div>
+
+        <!-- Form grid -->
+        <div class="form-grid">
+          <div class="form-section">
+            <div class="form-section-title">Session Information</div>
+            <div class="form-rows">
+              <div class="form-row"><div class="form-label">Ordered Date</div><div class="form-input filled">28/04/2026</div></div>
+              <div class="form-row"><div class="form-label">Freq. / Duration</div>
+                <div style="display:flex;gap:6px">
+                  <div class="form-input" style="flex:1"></div><span style="font-size:11px;color:#9ca3af;align-self:center">day</span>
+                  <div class="form-input" style="flex:1"></div><span style="font-size:11px;color:#9ca3af;align-self:center">hour</span>
+                </div>
+              </div>
+              <div class="form-row"><div class="form-label">Dry Weight</div><div class="form-input"></div></div>
+              <div class="form-row"><div class="form-label">Target Kt/V</div><div class="form-input"></div></div>
+              <div class="form-row"><div class="form-label">Treatment Type</div><div class="form-input filled">HDF</div></div>
+              <div class="form-row"><div class="form-label">Blood Flow (Qb)</div><div class="form-input filled" style="color:#1f6b6b;font-weight:700">350 mL/min</div></div>
+              <div class="form-row"><div class="form-label">Dialysate Flow (Qd)</div><div class="form-input filled">500 mL/min</div></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title purple">Anticoagulation</div>
+            <div class="form-rows">
+              <div class="form-row"><div class="form-label">Anticoagulation</div><div class="form-input filled">Lock solution</div></div>
+              <div class="form-row"><div class="form-label">A. Initial Dose</div>
+                <div style="display:flex;gap:6px"><div class="form-input" style="flex:1"></div><span style="font-size:10px;color:#9ca3af;align-self:center">unit</span></div>
+              </div>
+              <div class="form-row"><div class="form-label">A. Contin. Dose</div>
+                <div style="display:flex;gap:6px"><div class="form-input" style="flex:1"></div><span style="font-size:10px;color:#9ca3af;align-self:center">u/hour</span></div>
+              </div>
+              <div class="form-row"><div class="form-label">A. Total Dose</div>
+                <div style="display:flex;gap:6px"><div class="form-input" style="flex:1"></div><span style="font-size:10px;color:#9ca3af;align-self:center">unit</span></div>
+              </div>
+              <div class="form-row"><div class="form-label">Dialyzer / Membrane</div><div class="form-input filled">FX CorDiax 80</div></div>
+              <div class="form-row"><div class="form-label">Vascular Access</div><div class="form-input filled">AV Fistula — Left</div></div>
+              <div class="form-row"><div class="form-label">UF Goal</div><div class="form-input filled" style="color:#1f6b6b;font-weight:700">2.5 L</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-bar">
+          <button class="btn btn-teal">💾 Save Prescription</button>
+          <button class="btn btn-orange">▶ Begin Treatment →</button>
+          <button class="btn btn-gray">✕ Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

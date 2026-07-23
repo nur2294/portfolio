@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicDesk — Yeni Hasta Tanımlama</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+
+  .sidebar { width: 230px; background: #1a3a4a; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 14px 16px; background: #0f2535; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a4a5a; }
+  .logo-icon { width: 32px; height: 32px; background: #2a9d8f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .logo-text { color: #fff; font-size: 14px; font-weight: 700; }
+  .logo-sub { color: #7fbbcc; font-size: 9px; }
+  .sidebar-section { padding: 8px 10px 4px; color: #7fbbcc; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar-item { padding: 9px 14px; color: #c8dde4; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 9px; border-radius: 6px; margin: 1px 6px; }
+  .sidebar-item.active { background: #2a9d8f; color: #fff; }
+  .sidebar-item.sub { padding-left: 32px; font-size: 11px; color: #a0c4cc; }
+  .sidebar-item.sub.active { background: rgba(42,157,143,0.3); color: #fff; }
+  .sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .topbar { background: #1a3a4a; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2a9d8f; flex-shrink: 0; }
+  .topbar-title { color: #fff; font-size: 15px; font-weight: 700; }
+  .topbar-subtitle { color: #7fbbcc; font-size: 11px; }
+  .topbar-badge { background: rgba(42,157,143,0.2); border: 1px solid #2a9d8f; color: #7fdbcc; font-size: 10px; padding: 4px 10px; border-radius: 20px; }
+  .profile-btn { background: #2a9d8f; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; }
+
+  .content { flex: 1; overflow-y: auto; padding: 16px; display: flex; gap: 14px; }
+
+  /* Left: photo + summary */
+  .left-panel { width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+  .photo-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+  .photo-placeholder { width: 100px; height: 120px; background: #e8f0f4; border-radius: 10px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; border: 2px dashed #b0cdd8; cursor: pointer; }
+  .photo-placeholder .ph-icon { font-size: 28px; opacity: 0.5; }
+  .photo-placeholder .ph-text { font-size: 9px; color: #7f9aaa; }
+  .upload-btn { width: 100%; padding: 8px; background: #f0f7f6; border: 1px solid #2a9d8f; border-radius: 8px; color: #2a9d8f; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+  .patient-id-card { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .pid-label { font-size: 9px; color: #9ab0bb; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 4px; }
+  .pid-value { font-size: 13px; font-weight: 800; color: #1a3a4a; font-family: monospace; }
+  .pid-badge { display: inline-block; margin-top: 8px; padding: 3px 10px; background: #e8f4f0; color: #1a6b5a; border-radius: 20px; font-size: 10px; font-weight: 700; }
+
+  /* Right: form sections */
+  .form-area { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .section { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+  .section-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0f4f6; }
+  .section-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .section-title { font-size: 12px; font-weight: 700; color: #1a3a4a; }
+  .section-subtitle { font-size: 10px; color: #9ab0bb; margin-top: 1px; }
+  .section-body { padding: 14px 16px; }
+
+  .form-grid { display: grid; gap: 10px; }
+  .form-grid-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 10px; font-weight: 700; color: #5a7a8a; text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-label .req { color: #e74c3c; }
+  .form-input { padding: 8px 10px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; background: #f8fafb; outline: none; }
+  .form-input:focus { border-color: #2a9d8f; background: #fff; }
+  .form-input.filled { border-color: #2a9d8f; background: #f8fefc; color: #1a3a4a; font-weight: 600; }
+  .form-select { padding: 8px 10px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; background: #f8fafb; outline: none; }
+  .form-select.filled { border-color: #2a9d8f; color: #1a3a4a; font-weight: 600; }
+  .form-textarea { padding: 8px 10px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; background: #f8fafb; resize: none; min-height: 60px; outline: none; font-family: inherit; }
+
+  /* Action bar */
+  .action-bar { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+  .action-info { font-size: 11px; color: #7f9aaa; }
+  .action-btns { display: flex; gap: 8px; }
+  .btn-cancel { padding: 8px 18px; border: 1px solid #d1e5ec; border-radius: 8px; background: #fff; color: #5a7a8a; font-size: 12px; cursor: pointer; font-weight: 600; }
+  .btn-save { padding: 8px 22px; background: #2a9d8f; border: none; border-radius: 8px; color: #fff; font-size: 12px; cursor: pointer; font-weight: 700; }
+
+  /* SGK colors */
+  .sgk-teal { background: rgba(42,157,143,0.06); }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏥</div>
+    <div>
+      <div class="logo-text">ClinicDesk</div>
+      <div class="logo-sub">Poliklinik Yönetim Sistemi</div>
+    </div>
+  </div>
+  <div style="padding: 10px 0; flex: 1; overflow-y: auto;">
+    <div class="sidebar-section">Ana Menü</div>
+    <div class="sidebar-item"><span class="sidebar-icon">👥</span> Toplu Hasta Görüntüle</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📅</span> Takvim - Randevu</div>
+    <div class="sidebar-section" style="margin-top:6px;">Hasta İşlemleri</div>
+    <div class="sidebar-item sub active">Yeni Hasta Tanımlama</div>
+    <div class="sidebar-item sub">Hasta Güncelleme</div>
+    <div class="sidebar-item sub">Muayene</div>
+    <div class="sidebar-item sub">Hasta Takibi</div>
+    <div class="sidebar-item sub">Patoloji</div>
+    <div class="sidebar-item sub">İlaç Tedavisi</div>
+    <div class="sidebar-item sub">Laboratuar</div>
+    <div class="sidebar-item sub">Hasta Dokümanı</div>
+    <div class="sidebar-item sub">Hasta Listesi</div>
+    <div class="sidebar-item sub">Epikriz</div>
+    <div class="sidebar-item sub">Laboratuar Tetkik İstem</div>
+    <div class="sidebar-section" style="margin-top:6px;">Sistem</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📊</span> Raporlar</div>
+    <div class="sidebar-item"><span class="sidebar-icon">⚙️</span> Ayarlar</div>
+  </div>
+  <div style="padding: 12px; border-top: 1px solid #2a4a5a;">
+    <div style="font-size: 10px; color: #5a8090;">Bağlı Kullanıcı</div>
+    <div style="font-size: 11px; color: #c8dde4; font-weight: 600; margin-top: 2px;">🔒 Confidential Client</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Yeni Hasta Tanımlama</div>
+      <div class="topbar-subtitle">ClinicDesk · Hasta İşlemleri</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-badge">📅 08 Oca 2025</div>
+      <div class="topbar-badge">🆕 Yeni Kayıt</div>
+      <button class="profile-btn">👤 Profil</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Left panel -->
+    <div class="left-panel">
+      <div class="photo-card">
+        <div class="photo-placeholder">
+          <div class="ph-icon">📷</div>
+          <div class="ph-text">Fotoğraf Yükle</div>
+        </div>
+        <button class="upload-btn">📎 Dosya Seç</button>
+        <div style="font-size:9px;color:#9ab0bb;margin-top:8px;">JPG, PNG · Maks 2MB</div>
+      </div>
+
+      <div class="patient-id-card">
+        <div class="pid-label">Hasta No</div>
+        <div class="pid-value" style="color:#9ab0bb;">[Otomatik]</div>
+        <div class="pid-label" style="margin-top:10px;">Kayıt Tarihi</div>
+        <div class="pid-value" style="font-size:12px;color:#1a3a4a;">08.01.2025</div>
+        <div class="pid-badge">● Yeni Hasta</div>
+      </div>
+
+      <div class="patient-id-card" style="background:#f8fefc;">
+        <div class="pid-label">Zorunlu Alanlar</div>
+        <div style="font-size:10px;color:#7f9aaa;margin-top:6px;line-height:1.6;">
+          Ad Soyad <span style="color:#e74c3c;">*</span><br>
+          TC Kimlik No <span style="color:#e74c3c;">*</span><br>
+          Doğum Tarihi <span style="color:#e74c3c;">*</span><br>
+          SGK No <span style="color:#e74c3c;">*</span><br>
+          Telefon <span style="color:#e74c3c;">*</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form sections -->
+    <div class="form-area">
+
+      <!-- HASTA BİLGİ -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:#e8f4f0;">👤</div>
+          <div>
+            <div class="section-title">HASTA BİLGİ</div>
+            <div class="section-subtitle">Kişisel kimlik bilgileri</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="form-grid form-grid-4" style="margin-bottom:10px;">
+            <div class="form-group">
+              <div class="form-label">Ad <span class="req">*</span></div>
+              <input class="form-input filled" value="Hasta A" readonly />
+            </div>
+            <div class="form-group">
+              <div class="form-label">Soyad <span class="req">*</span></div>
+              <input class="form-input filled" value="[Soyad]" readonly />
+            </div>
+            <div class="form-group">
+              <div class="form-label">TC Kimlik No <span class="req">*</span></div>
+              <input class="form-input filled" value="***XXXX" readonly />
+            </div>
+            <div class="form-group">
+              <div class="form-label">Doğum Tarihi <span class="req">*</span></div>
+              <input class="form-input filled" type="text" value="15.06.1978" readonly />
+            </div>
+          </div>
+          <div class="form-grid form-grid-4">
+            <div class="form-group">
+              <div class="form-label">Cinsiyet</div>
+              <select class="form-select filled"><option>Erkek</option><option>Kadın</option></select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Medeni Durum</div>
+              <select class="form-select filled"><option>Evli</option><option>Bekar</option><option>Boşanmış</option></select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Kan Grubu</div>
+              <select class="form-select filled"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Meslek</div>
+              <input class="form-input" placeholder="Örn: Öğretmen" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOSYAL GÜVENLİK -->
+      <div class="section">
+        <div class="section-header" style="background: rgba(42,157,143,0.04);">
+          <div class="section-icon" style="background:#e8f4f0;">🛡️</div>
+          <div>
+            <div class="section-title">SOSYAL GÜVENLİK</div>
+            <div class="section-subtitle">SGK ve sigorta bilgileri</div>
+          </div>
+        </div>
+        <div class="section-body sgk-teal">
+          <div class="form-grid form-grid-3" style="margin-bottom:10px;">
+            <div class="form-group">
+              <div class="form-label">SGK No <span class="req">*</span></div>
+              <input class="form-input filled" value="SGK-***-XXXX" readonly />
+            </div>
+            <div class="form-group">
+              <div class="form-label">Sigorta Türü</div>
+              <select class="form-select filled">
+                <option>SSK (4/a)</option>
+                <option>Bağ-Kur (4/b)</option>
+                <option>Emekli Sandığı (4/c)</option>
+                <option>Genel Sağlık Sigortası</option>
+                <option>Özel Sigorta</option>
+                <option>Yok</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Provizyon Türü</div>
+              <select class="form-select">
+                <option>Normal Muayene</option>
+                <option>Acil</option>
+                <option>Kronik Hastalık</option>
+                <option>Kontrol</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid form-grid-3">
+            <div class="form-group">
+              <div class="form-label">Sosyal Yardım</div>
+              <select class="form-select">
+                <option>Yok</option>
+                <option>Yeşil Kart</option>
+                <option>Engelli Raporu</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Katkı Payı Muafiyeti</div>
+              <select class="form-select">
+                <option>Hayır</option>
+                <option>Evet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Poliçe / Üye No</div>
+              <input class="form-input" placeholder="Varsa giriniz" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADRES & İLETİŞİM -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:#eef2fb;">📍</div>
+          <div>
+            <div class="section-title">ADRES &amp; İLETİŞİM BİLGİLERİ</div>
+            <div class="section-subtitle">İletişim ve adres bilgileri</div>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="form-grid form-grid-3" style="margin-bottom:10px;">
+            <div class="form-group">
+              <div class="form-label">Cep Telefonu <span class="req">*</span></div>
+              <input class="form-input filled" value="05XX XXX XX XX" readonly />
+            </div>
+            <div class="form-group">
+              <div class="form-label">Ev Telefonu</div>
+              <input class="form-input" placeholder="0XXX XXX XX XX" />
+            </div>
+            <div class="form-group">
+              <div class="form-label">E-posta</div>
+              <input class="form-input" placeholder="hasta@email.com" />
+            </div>
+          </div>
+          <div class="form-grid form-grid-4" style="margin-bottom:10px;">
+            <div class="form-group">
+              <div class="form-label">İl</div>
+              <select class="form-select filled"><option>İstanbul</option><option>Ankara</option><option>İzmir</option><option>Bursa</option></select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">İlçe</div>
+              <select class="form-select filled"><option>Kadıköy</option><option>Beşiktaş</option><option>Üsküdar</option></select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Mahalle</div>
+              <input class="form-input" placeholder="Mahalle adı" />
+            </div>
+            <div class="form-group">
+              <div class="form-label">Posta Kodu</div>
+              <input class="form-input" placeholder="34XXX" />
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Açık Adres</div>
+            <textarea class="form-textarea" placeholder="Sokak, apartman, daire no..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="action-bar">
+        <div class="action-info">⚠ Kırmızı yıldız (<span style="color:#e74c3c;">*</span>) ile işaretli alanlar zorunludur.</div>
+        <div class="action-btns">
+          <button class="btn-cancel">İptal</button>
+          <button class="btn-save">✅ Hastayı Kaydet</button>
+        </div>
+      </div>
+
+    </div><!-- /form-area -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+</body>
+</html>

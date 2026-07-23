@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NephroDesk — Seans Yönetimi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+
+  .frame { width: 1200px; background: #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.6); }
+  .frame-bar { background: #334155; height: 40px; display: flex; align-items: center; padding: 0 16px; gap: 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+  .url-bar { background: #1e293b; border-radius: 6px; flex: 1; height: 24px; margin: 0 16px; display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: #64748b; }
+
+  .app { display: flex; height: 680px; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; background: #1e3a5f; flex-shrink: 0; display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .logo-text { font-size: 15px; font-weight: 700; color: white; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .clinic-badge { margin: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; padding: 10px 12px; }
+  .clinic-name { font-size: 10px; color: rgba(255,255,255,0.80); font-weight: 600; line-height: 1.4; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 12px; color: rgba(255,255,255,0.65); }
+  .nav-item.active { background: rgba(201,168,76,0.15); color: #e2c47a; border-right: 3px solid #c9a84c; }
+  .nav-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.30); padding: 8px 16px 4px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .sub-item { display: flex; align-items: center; gap: 8px; padding: 7px 16px 7px 36px; font-size: 11px; color: rgba(255,255,255,0.50); }
+  .sub-item.active { color: white; background: rgba(255,255,255,0.06); }
+
+  /* Main */
+  .main { flex: 1; background: #f1f5f9; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: white; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+  .page-title { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+  .page-sub { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.10); border: 1px solid rgba(16,185,129,0.25); border-radius: 20px; padding: 5px 12px; font-size: 11px; font-weight: 700; color: #059669; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; animation: pulse 1.2s infinite; }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .btn { padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; }
+  .btn-gold { background: linear-gradient(135deg,#c9a84c,#e2c47a); color: #1e3a5f; }
+  .btn-outline { background: white; color: #1e3a5f; border: 1.5px solid #e2e8f0; }
+  .btn-red { background: rgba(239,68,68,0.10); color: #dc2626; border: 1.5px solid rgba(239,68,68,0.20); }
+
+  .content { flex: 1; padding: 16px 20px; overflow-y: auto; }
+
+  /* Machine grid header */
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #1e3a5f; }
+
+  /* Machine grid */
+  .machine-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 18px; }
+  .machine-card { border-radius: 10px; padding: 10px; border: 1.5px solid; cursor: pointer; transition: all 0.15s; }
+  .machine-card.active { background: rgba(30,58,95,0.05); border-color: #1e3a5f; }
+  .machine-card.alarm { background: rgba(239,68,68,0.05); border-color: #ef4444; animation: blink 1.5s infinite; }
+  @keyframes blink{0%,100%{border-color:#ef4444}50%{border-color:rgba(239,68,68,0.3)}}
+  .machine-card.empty { background: #f8fafc; border-color: #e2e8f0; border-style: dashed; }
+  .machine-card.selected { background: rgba(201,168,76,0.08); border-color: #c9a84c; border-width: 2px; }
+  .machine-num { font-size: 10px; font-weight: 800; margin-bottom: 4px; }
+  .machine-num.active { color: #1e3a5f; }
+  .machine-num.alarm { color: #ef4444; }
+  .machine-num.empty { color: #cbd5e1; }
+  .machine-patient { font-size: 9px; font-weight: 600; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .machine-time { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+  .machine-status { width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; }
+  .status-green { background: #10b981; animation: pulse 1.2s infinite; }
+  .status-red { background: #ef4444; animation: pulse 0.6s infinite; }
+  .status-gray { background: #cbd5e1; }
+  .machine-progress { height: 3px; background: #f1f5f9; border-radius: 2px; margin-top: 5px; }
+  .machine-progress-fill { height: 100%; border-radius: 2px; }
+
+  /* Active seans detail */
+  .detail-grid { display: grid; grid-template-columns: 1fr 320px; gap: 14px; }
+
+  .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+  .card-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; }
+  .card-title { font-size: 12px; font-weight: 700; color: #1e3a5f; }
+
+  /* Active session card */
+  .session-hero { background: linear-gradient(135deg,#1e3a5f,#2a4f7c); padding: 16px; display: flex; gap: 16px; align-items: center; }
+  .session-avatar { width: 44px; height: 44px; border-radius: 10px; background: rgba(201,168,76,0.20); border: 1.5px solid rgba(201,168,76,0.35); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #e2c47a; flex-shrink: 0; }
+  .session-patient-name { font-size: 15px; font-weight: 800; color: white; }
+  .session-meta { font-size: 10px; color: rgba(255,255,255,0.60); margin-top: 2px; }
+  .session-timer { margin-left: auto; text-align: right; }
+  .timer-value { font-size: 22px; font-weight: 900; color: #e2c47a; font-variant-numeric: tabular-nums; }
+  .timer-label { font-size: 9px; color: rgba(255,255,255,0.50); text-transform: uppercase; }
+
+  /* Progress bar */
+  .session-progress { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; }
+  .progress-bar { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg,#1e3a5f,#c9a84c); border-radius: 4px; width: 63%; }
+  .progress-labels { display: flex; justify-content: space-between; margin-top: 5px; font-size: 9px; color: #94a3b8; }
+
+  /* Vital signs table */
+  .vitals-table { padding: 12px 16px; }
+  .vitals-row { display: grid; grid-template-columns: 60px 1fr 1fr 1fr 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f8fafc; align-items: center; }
+  .vitals-row.header { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .vitals-time { font-size: 10px; color: #94a3b8; }
+  .vitals-val { font-size: 11px; font-weight: 700; color: #1e293b; }
+  .vitals-val.ok { color: #10b981; }
+  .vitals-val.warn { color: #f59e0b; }
+  .vitals-val.bad { color: #ef4444; }
+
+  /* Right panel */
+  .right-col { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Drug list */
+  .drug-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-top: 1px solid #f1f5f9; }
+  .drug-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .drug-name { font-size: 11px; font-weight: 600; color: #1e293b; }
+  .drug-dose { font-size: 10px; color: #94a3b8; }
+  .drug-status { margin-left: auto; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+  .drug-done { background: rgba(16,185,129,0.10); color: #059669; }
+  .drug-pending { background: rgba(245,158,11,0.10); color: #d97706; }
+
+  /* UF monitoring */
+  .uf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 14px; }
+  .uf-item { background: #f8fafc; border-radius: 8px; padding: 9px 11px; border: 1px solid #f1f5f9; }
+  .uf-label { font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+  .uf-val { font-size: 16px; font-weight: 800; color: #1e3a5f; margin-top: 2px; }
+  .uf-val.gold { color: #c9a84c; }
+  .uf-sub { font-size: 9px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="frame-bar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <div class="url-bar">🔒 dialinelog.com/seans · Seans Yönetimi — Canlı İzleme</div>
+  </div>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-text">NephroDesk</div>
+        <div class="logo-sub">Clinical Management System</div>
+      </div>
+      <div class="clinic-badge"><div class="clinic-name">🔒 Confidential Client</div></div>
+      <div class="nav-label">Klinik</div>
+      <div class="nav-item">📊 Dashboard</div>
+      <div class="nav-item">👤 Hasta</div>
+      <div class="nav-item active">💊 Seans</div>
+      <div class="sub-item active">↳ Canlı Seans İzleme</div>
+      <div class="sub-item">↳ Seans Planla</div>
+      <div class="sub-item">↳ Makine Atama</div>
+      <div class="sub-item">↳ Geçmiş Seanslar</div>
+      <div class="nav-label">Entegrasyon</div>
+      <div class="nav-item">🧪 Tahlil / LIS</div>
+      <div class="nav-item">🏥 SGK Faturalama</div>
+      <div class="nav-item">💉 İTS İlaç</div>
+      <div class="nav-label">Raporlar</div>
+      <div class="nav-item">📋 Raporlar</div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <div class="page-title">Seans Yönetimi</div>
+          <div class="page-sub">Canlı seans izleme — 22 Mayıs 2025</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="live-badge"><div class="live-dot"></div>6 Aktif Seans</div>
+          <button class="btn btn-outline">📋 Seans Planı</button>
+          <button class="btn btn-gold">+ Yeni Seans</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Machine grid -->
+        <div class="section-head">
+          <div class="section-title">Makine Durumu — Salon A (12 Makine)</div>
+          <div style="display:flex;gap:12px;font-size:10px;color:#94a3b8;">
+            <span>🟢 Aktif (6)</span><span>🔴 Alarm (1)</span><span>⬜ Boş (5)</span>
+          </div>
+        </div>
+        <div class="machine-grid">
+          <!-- M01 active -->
+          <div class="machine-card selected">
+            <div class="machine-num active">M-01</div>
+            <div class="machine-patient">Mehmet K.</div>
+            <div class="machine-time">02:34 / 04:00</div>
+            <div class="machine-progress"><div class="machine-progress-fill" style="width:63%;background:linear-gradient(90deg,#1e3a5f,#c9a84c)"></div></div>
+            <div class="machine-status status-green"></div>
+          </div>
+          <!-- M02 alarm -->
+          <div class="machine-card alarm">
+            <div class="machine-num alarm">M-02 ⚠</div>
+            <div class="machine-patient">Ali R.</div>
+            <div class="machine-time">01:12 / 04:00</div>
+            <div class="machine-progress"><div class="machine-progress-fill" style="width:30%;background:#ef4444"></div></div>
+            <div class="machine-status status-red"></div>
+          </div>
+          <!-- M03 active -->
+          <div class="machine-card active">
+            <div class="machine-num active">M-03</div>
+            <div class="machine-patient">Fatma Ş.</div>
+            <div class="machine-time">01:48 / 03:30</div>
+            <div class="machine-progress"><div class="machine-progress-fill" style="width:51%;background:#1e3a5f"></div></div>
+            <div class="machine-status status-green"></div>
+          </div>
+          <!-- M04 empty -->
+          <div class="machine-card empty">
+            <div class="machine-num empty">M-04</div>
+            <div class="machine-patient" style="color:#cbd5e1">— Boş —</div>
+            <div class="machine-status status-gray"></div>
+          </div>
+          <!-- M05 active -->
+          <div class="machine-card active">
+            <div class="machine-num active">M-05</div>
+            <div class="machine-patient">Hasan T.</div>
+            <div class="machine-time">03:10 / 04:00</div>
+            <div class="machine-progress"><div class="machine-progress-fill" style="width:79%;background:#10b981"></div></div>
+            <div class="machine-status status-green"></div>
+          </div>
+          <!-- M06 empty -->
+          <div class="machine-card empty">
+            <div class="machine-num empty">M-06</div>
+            <div class="machine-patient" style="color:#cbd5e1">— Boş —</div>
+            <div class="machine-status status-gray"></div>
+          </div>
+          <!-- M07 active -->
+          <div class="machine-card active">
+            <div class="machine-num active">M-07</div>
+            <div class="machine-patient">Emine Y.</div>
+            <div class="machine-time">00:55 / 04:00</div>
+            <div class="machine-progress"><div class="machine-progress-fill" style="width:23%;background:#1e3a5f"></div></div>
+            <div class="machine-status status-green"></div>
+          </div>
+          <!-- M08 empty -->
+          <div class="machine-card empty">
+            <div class="machine-num empty">M-08</div>
+            <div class="machine-patient" style="color:#cbd5e1">— Boş —</div>
+            <div class="machine-status status-gray"></div>
+          </div>
+          <!-- M09 active -->
+          <div class="machine-card active">
+            <div class="machine-num active">M-09</div>
+            <div class="machine-patient">Ayşe D.</div>
+            <div class="machine-time">02:05 / 03:30</div>
+            <div class="machine-progress"><div class="machine-progress-fill" style="width:58%;background:#1e3a5f"></div></div>
+            <div class="machine-status status-green"></div>
+          </div>
+          <!-- M10–12 empty -->
+          <div class="machine-card empty"><div class="machine-num empty">M-10</div><div class="machine-patient" style="color:#cbd5e1">— Boş —</div><div class="machine-status status-gray"></div></div>
+          <div class="machine-card empty"><div class="machine-num empty">M-11</div><div class="machine-patient" style="color:#cbd5e1">— Boş —</div><div class="machine-status status-gray"></div></div>
+          <div class="machine-card empty"><div class="machine-num empty">M-12</div><div class="machine-patient" style="color:#cbd5e1">— Boş —</div><div class="machine-status status-gray"></div></div>
+        </div>
+
+        <!-- Detail -->
+        <div class="detail-grid">
+          <!-- Active session vitals -->
+          <div class="card">
+            <div class="session-hero">
+              <div class="session-avatar">MK</div>
+              <div>
+                <div class="session-patient-name">Mehmet Kara — M-01</div>
+                <div class="session-meta">#DLZ-0421 · AV Fistül Sol · Qb 350 mL/dk · UF Hedef 2.5 L</div>
+              </div>
+              <div class="session-timer">
+                <div class="timer-value">02:34</div>
+                <div class="timer-label">/ 04:00 kaldı</div>
+              </div>
+            </div>
+            <div class="session-progress">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:5px;">
+                <span>Seans ilerlemesi</span><span style="font-weight:700;color:#c9a84c">63%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill"></div></div>
+              <div class="progress-labels"><span>Başlangıç 09:00</span><span>Şimdi 11:34</span><span>Bitiş 13:00</span></div>
+            </div>
+            <div class="vitals-table">
+              <div class="vitals-row header">
+                <div>Saat</div><div>KB (mmHg)</div><div>Nabız</div><div>UF Çıkış</div><div>Not</div>
+              </div>
+              <div class="vitals-row">
+                <div class="vitals-time">09:00</div>
+                <div class="vitals-val">138/85</div>
+                <div class="vitals-val">78</div>
+                <div class="vitals-val">0.0 L</div>
+                <div style="font-size:10px;color:#94a3b8">Seans başladı</div>
+              </div>
+              <div class="vitals-row">
+                <div class="vitals-time">09:30</div>
+                <div class="vitals-val ok">130/80</div>
+                <div class="vitals-val">76</div>
+                <div class="vitals-val">0.4 L</div>
+                <div style="font-size:10px;color:#94a3b8">—</div>
+              </div>
+              <div class="vitals-row">
+                <div class="vitals-time">10:00</div>
+                <div class="vitals-val ok">128/78</div>
+                <div class="vitals-val">74</div>
+                <div class="vitals-val">0.9 L</div>
+                <div style="font-size:10px;color:#94a3b8">—</div>
+              </div>
+              <div class="vitals-row">
+                <div class="vitals-time">10:30</div>
+                <div class="vitals-val ok">125/76</div>
+                <div class="vitals-val">72</div>
+                <div class="vitals-val">1.4 L</div>
+                <div style="font-size:10px;color:#94a3b8">—</div>
+              </div>
+              <div class="vitals-row" style="background:#f8fafc;">
+                <div class="vitals-time" style="font-weight:800;color:#1e3a5f">11:00</div>
+                <div class="vitals-val ok">122/74</div>
+                <div class="vitals-val">71</div>
+                <div class="vitals-val gold" style="color:#c9a84c">1.8 L</div>
+                <div style="font-size:10px;color:#94a3b8">Son kayıt ✓</div>
+              </div>
+            </div>
+            <div style="padding:10px 16px;border-top:1px solid #f1f5f9;display:flex;gap:8px;">
+              <button class="btn btn-outline" style="flex:1">📝 Vital Kaydet</button>
+              <button class="btn btn-outline" style="flex:1">📋 Hemşire Notu</button>
+              <button class="btn btn-red">⏹ Seansı Bitir</button>
+            </div>
+          </div>
+
+          <!-- Right panel -->
+          <div class="right-col">
+            <!-- İTS Drug -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">İTS İlaç Takibi</div>
+                <span style="font-size:10px;background:rgba(30,58,95,0.08);color:#1e3a5f;padding:3px 8px;border-radius:6px;font-weight:700">Bu Seans</span>
+              </div>
+              <div class="drug-item">
+                <div class="drug-icon" style="background:rgba(239,68,68,0.10)">💉</div>
+                <div><div class="drug-name">Heparin Sodyum</div><div class="drug-dose">5000 IU — IV Bolus · Barkod: ✓</div></div>
+                <div class="drug-status drug-done">Verildi</div>
+              </div>
+              <div class="drug-item">
+                <div class="drug-icon" style="background:rgba(59,130,246,0.10)">💊</div>
+                <div><div class="drug-name">Eritropoietin (EPO)</div><div class="drug-dose">4000 IU — SC · Barkod: ✓</div></div>
+                <div class="drug-status drug-done">Verildi</div>
+              </div>
+              <div class="drug-item">
+                <div class="drug-icon" style="background:rgba(245,158,11,0.10)">🧪</div>
+                <div><div class="drug-name">IV Demir (Cosmofer)</div><div class="drug-dose">100 mg — IV Inf · Reçete var</div></div>
+                <div class="drug-status drug-pending">Bekliyor</div>
+              </div>
+            </div>
+
+            <!-- UF Monitoring -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">UF & Ağırlık İzleme</div>
+              </div>
+              <div class="uf-grid">
+                <div class="uf-item">
+                  <div class="uf-label">Giriş Ağırlığı</div>
+                  <div class="uf-val">73.4 <span style="font-size:11px;color:#94a3b8">kg</span></div>
+                </div>
+                <div class="uf-item">
+                  <div class="uf-label">Hedef Ağırlık</div>
+                  <div class="uf-val">70.9 <span style="font-size:11px;color:#94a3b8">kg</span></div>
+                </div>
+                <div class="uf-item">
+                  <div class="uf-label">UF Hedef</div>
+                  <div class="uf-val gold">2.5 <span style="font-size:11px;color:#94a3b8">L</span></div>
+                </div>
+                <div class="uf-item">
+                  <div class="uf-label">Anlık UF</div>
+                  <div class="uf-val" style="color:#10b981">1.8 <span style="font-size:11px;color:#94a3b8">L</span></div>
+                  <div class="uf-sub">%72 tamamlandı</div>
+                </div>
+              </div>
+              <!-- UF progress -->
+              <div style="padding:0 14px 12px;">
+                <div style="height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
+                  <div style="height:100%;width:72%;background:linear-gradient(90deg,#10b981,#c9a84c);border-radius:3px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SGK status -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">SGK Faturalama</div>
+                <span style="font-size:10px;background:rgba(16,185,129,0.10);color:#059669;padding:3px 8px;border-radius:6px;font-weight:700">Provizyon Açık</span>
+              </div>
+              <div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;">
+                  <span style="color:#94a3b8">Provizyon No</span>
+                  <span style="font-weight:700;color:#1e3a5f">PRV-2025-05-22-0421</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;">
+                  <span style="color:#94a3b8">Provizyon Tarihi</span>
+                  <span style="color:#475569">22.05.2025 09:02</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;">
+                  <span style="color:#94a3b8">Seans Tipi</span>
+                  <span style="color:#475569">Kronik Hemodiyaliz</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;">
+                  <span style="color:#94a3b8">Fatura Durumu</span>
+                  <span style="font-weight:700;color:#f59e0b">Seans tamamlanınca</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
