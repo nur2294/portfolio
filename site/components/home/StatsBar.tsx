@@ -1,3 +1,7 @@
+"use client";
+
+import { useLanguage } from "@/contexts/LanguageContext";
+
 const techStack = [
   { name: "PHP", icon: "🐘" },
   { name: "JavaScript", icon: "⚡" },
@@ -7,12 +11,14 @@ const techStack = [
   { name: "MySQL", icon: "🗄️" },
   { name: "MSSQL", icon: "🗃️" },
   { name: "REST API", icon: "🔗" },
-  { name: "LLM & Yapay Zeka", icon: "🤖" },
+  { name: "LLM & AI", icon: "🤖" },
   { name: "HL7 FHIR", icon: "🏥" },
   { name: "SOAP / XML", icon: "📡" },
 ];
 
 export default function StatsBar() {
+  const { t } = useLanguage();
+
   return (
     <section
       style={{
@@ -26,7 +32,7 @@ export default function StatsBar() {
           className="text-center text-xs font-semibold uppercase tracking-widest mb-8"
           style={{ color: "rgba(255,255,255,0.35)" }}
         >
-          Teknoloji Stack&apos;i
+          {t.stats.label}
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           {techStack.map((tech) => (

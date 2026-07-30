@@ -1,5 +1,9 @@
+"use client";
+
 import { UserPlus, FileText, Cpu, Activity, FlaskConical, FileCheck } from "lucide-react";
 import { workflowSteps } from "@/lib/data";
+import { workflowStepsEn } from "@/lib/data-en";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = {
   UserPlus,
@@ -11,6 +15,9 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; style?: React
 };
 
 export default function WorkflowSection() {
+  const { lang, t } = useLanguage();
+  const steps = lang === "en" ? workflowStepsEn : workflowSteps;
+
   return (
     <section
       className="section-padding relative overflow-hidden"
@@ -37,24 +44,24 @@ export default function WorkflowSection() {
               color: "#e2c47a",
             }}
           >
-            Clinical Workflow Storytelling
+            {t.workflow.badge}
           </div>
           <h2
             className="text-4xl font-bold mb-4"
             style={{ color: "#ffffff", fontFamily: "Playfair Display, serif" }}
           >
-            Dijital Sağlık Platformu İş Akışı
+            {t.workflow.title}
           </h2>
           <p className="text-base max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.60)" }}>
-            Hasta kabulünden raporlamaya kadar klinik platformun tüm süreçleri yazılımla nasıl yönetilir — uçtan uca.
+            {t.workflow.desc}
           </p>
         </div>
 
         {/* Steps */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {workflowSteps.map((step, i) => {
+          {steps.map((step, i) => {
             const Icon = iconMap[step.icon];
-            const isLast = i === workflowSteps.length - 1;
+            const isLast = i === steps.length - 1;
             return (
               <div
                 key={step.id}
@@ -130,7 +137,7 @@ export default function WorkflowSection() {
         {/* Bottom note */}
         <div className="text-center mt-12">
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
-            Designed for high-volume dialysis centers with real-time treatment monitoring and LIS interoperability.
+            {t.workflow.note}
           </p>
         </div>
       </div>

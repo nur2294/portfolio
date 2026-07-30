@@ -1,23 +1,28 @@
+"use client";
+
 import Link from "next/link";
 import { Mail, Heart, Globe, ExternalLink } from "lucide-react";
-
-const footerLinks = {
-  Sayfalar: [
-    { href: "/", label: "Ana Sayfa" },
-    { href: "/portfolio", label: "Portföy" },
-    { href: "/blog", label: "Blog" },
-    { href: "/about", label: "Hakkımda" },
-    { href: "/contact", label: "İletişim" },
-  ],
-  Hizmetler: [
-    { href: "/portfolio#klinik-yonetim", label: "Klinik Yazılım" },
-    { href: "/portfolio#entegrasyon", label: "Sistem Entegrasyonu" },
-    { href: "/portfolio#raporlama", label: "Klinik Raporlama" },
-    { href: "/contact", label: "Danışmanlık" },
-  ],
-};
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLanguage();
+
+  const footerLinks = {
+    [t.footer.pages]: [
+      { href: "/", label: t.footer.links.home },
+      { href: "/portfolio", label: t.footer.links.portfolio },
+      { href: "/blog", label: t.footer.links.blog },
+      { href: "/about", label: t.footer.links.about },
+      { href: "/contact", label: t.footer.links.contact },
+    ],
+    [t.footer.services]: [
+      { href: "/portfolio#klinik-yonetim", label: t.footer.links.clinicSoftware },
+      { href: "/portfolio#entegrasyon", label: t.footer.links.integration },
+      { href: "/portfolio#raporlama", label: t.footer.links.reporting },
+      { href: "/contact", label: t.footer.links.consulting },
+    ],
+  };
+
   return (
     <footer style={{ background: "#0f172a" }} className="text-white">
       {/* Top CTA band */}
@@ -34,10 +39,10 @@ export default function Footer() {
               className="text-2xl font-bold mb-2"
               style={{ fontFamily: "Playfair Display, serif", color: "#ffffff" }}
             >
-              Projenizi Hayata Geçirelim
+              {t.footer.ctaTitle}
             </h3>
             <p style={{ color: "rgba(255,255,255,0.70)", fontSize: "15px" }}>
-              Klinik yazılım ihtiyaçlarınız için ücretsiz ön görüşme talep edin.
+              {t.footer.ctaDesc}
             </p>
           </div>
           <Link
@@ -48,7 +53,7 @@ export default function Footer() {
               color: "#1e3a5f",
             }}
           >
-            Ücretsiz Görüşme Talep Et
+            {t.footer.ctaBtn}
           </Link>
         </div>
       </div>
@@ -68,16 +73,16 @@ export default function Footer() {
               <div>
                 <p className="font-semibold text-base">Nur Asıltaş</p>
                 <p className="text-xs" style={{ color: "rgba(255,255,255,0.50)" }}>
-                  Yazılım Mühendisi
+                  {t.footer.role}
                 </p>
               </div>
             </div>
             <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.60)", maxWidth: "320px" }}>
-              Sağlık sektöründe yazılım çözümleri geliştirerek kliniklerin daha verimli, güvenli ve hasta odaklı çalışmasına katkı sağlıyorum.
+              {t.footer.brandDesc}
             </p>
             <div className="flex gap-3">
               {[
-                { href: "mailto:nur@example.com", Icon: Mail, label: "Email" },
+                { href: "mailto:nurasiltas@outlook.com", Icon: Mail, label: "Email" },
                 { href: "https://linkedin.com", Icon: Globe, label: "LinkedIn" },
                 { href: "https://github.com", Icon: ExternalLink, label: "GitHub" },
               ].map(({ href, Icon, label }) => (
@@ -129,10 +134,10 @@ export default function Footer() {
           style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
         >
           <p className="text-xs" style={{ color: "rgba(255,255,255,0.40)" }}>
-            © {new Date().getFullYear()} Nur Asıltaş. Tüm hakları saklıdır.
+            © {new Date().getFullYear()} Nur Asıltaş. {t.footer.copyright}
           </p>
           <p className="text-xs flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.40)" }}>
-            Sağlık sektörüne <Heart size={12} style={{ color: "#c9a84c" }} fill="#c9a84c" /> ile yapıldı
+            {t.footer.madeFor} <Heart size={12} style={{ color: "#c9a84c" }} fill="#c9a84c" /> {t.footer.madeWith}
           </p>
         </div>
       </div>

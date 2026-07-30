@@ -4,19 +4,23 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
-
-const roles = [
-  "Yazılım Mühendisi",
-  "Healthcare IT Uzmanı",
-  "Hasta Takip Sistemleri Geliştirici",
-  "Sağlık Teknolojileri Yazılım Mühendisi",
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Hero() {
+  const { t, lang } = useLanguage();
   const roleRef = useRef<HTMLSpanElement>(null);
   const roleIndex = useRef(0);
   const charIndex = useRef(0);
   const isDeleting = useRef(false);
+
+  const roles = t.hero.roles as readonly string[];
+
+  useEffect(() => {
+    roleIndex.current = 0;
+    charIndex.current = 0;
+    isDeleting.current = false;
+    if (roleRef.current) roleRef.current.textContent = "";
+  }, [lang]);
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
@@ -47,7 +51,7 @@ export default function Hero() {
 
     timeout = setTimeout(type, 500);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [lang, roles]);
 
   return (
     <section
@@ -90,7 +94,7 @@ export default function Hero() {
               className="w-2 h-2 rounded-full animate-pulse-gold"
               style={{ background: "#c9a84c" }}
             />
-            🇹🇷 Türkiye &nbsp;·&nbsp; 🇶🇦 Katar &nbsp;·&nbsp; 🇲🇰 Makedonya
+            🇹🇷 {lang === "tr" ? "Türkiye" : "Turkey"} &nbsp;·&nbsp; 🇶🇦 {lang === "tr" ? "Katar" : "Qatar"} &nbsp;·&nbsp; 🇲🇰 {lang === "tr" ? "Makedonya" : "Macedonia"}
           </div>
 
           {/* Heading */}
@@ -98,17 +102,17 @@ export default function Hero() {
             className="text-5xl md:text-6xl font-bold leading-tight mb-4"
             style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}
           >
-            Sağlık Sektörü İçin
+            {t.hero.h1}
             <br />
-            <span style={{ color: "#c9a84c" }}>Akıllı Yazılım</span>
+            <span style={{ color: "#c9a84c" }}>{t.hero.h2}</span>
             <br />
-            Çözümleri
+            {t.hero.h3}
           </h1>
 
           {/* Typewriter */}
           <div className="flex items-center gap-2 mb-6 h-8">
             <span className="text-base font-medium" style={{ color: "#475569" }}>
-              Ben bir{" "}
+              {t.hero.prefix}{" "}
             </span>
             <span
               ref={roleRef}
@@ -128,7 +132,7 @@ export default function Hero() {
             className="text-lg leading-relaxed mb-10"
             style={{ color: "#64748b", maxWidth: "480px" }}
           >
-            Türkiye ve global ülke klinik merkezlerinde aktif kullanılan hasta takip ve yönetim platformları geliştiriyorum. Her ülkenin yerel gereksinimine uygun, enterprise düzey yazılım çözümleri.
+            {t.hero.desc}
           </p>
 
           {/* CTA Buttons */}
@@ -141,7 +145,7 @@ export default function Hero() {
                 boxShadow: "0 4px 20px rgba(30,58,95,0.30)",
               }}
             >
-              Portföyümü Gör
+              {t.hero.cta1}
               <ArrowRight
                 size={16}
                 className="transition-transform group-hover:translate-x-1"
@@ -156,27 +160,23 @@ export default function Hero() {
                 background: "transparent",
               }}
             >
-              İletişime Geç
+              {t.hero.cta2}
             </Link>
           </div>
 
           {/* Trust badges */}
           <div className="flex flex-wrap items-center gap-6 mt-10">
-            {[
-              { value: "5+", label: "Yıl Deneyim" },
-            ].map((stat) => (
-              <div key={stat.label} className="flex items-baseline gap-1.5">
-                <span
-                  className="text-2xl font-bold"
-                  style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}
-                >
-                  {stat.value}
-                </span>
-                <span className="text-sm" style={{ color: "#94a3b8" }}>
-                  {stat.label}
-                </span>
-              </div>
-            ))}
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className="text-2xl font-bold"
+                style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}
+              >
+                5+
+              </span>
+              <span className="text-sm" style={{ color: "#94a3b8" }}>
+                {t.hero.years}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -225,14 +225,13 @@ export default function Hero() {
                   <div>
                     <p className="font-semibold text-sm" style={{ color: "#ffffff" }}>Nur Asıltaş</p>
                     <p className="text-xs" style={{ color: "rgba(255,255,255,0.70)" }}>
-                      Computer Engineer & Software Specialist
+                      {t.hero.cardTitle}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                      Healthcare Software · AI Solutions · Web Applications
+                      {t.hero.cardSub}
                     </p>
                   </div>
                 </div>
-
 
                 {/* Services */}
                 <div
@@ -240,7 +239,7 @@ export default function Hero() {
                   style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
                 >
                   <p className="text-xs font-medium mb-3" style={{ color: "rgba(255,255,255,0.50)" }}>
-                    Çözüm Alanları
+                    {t.hero.solutions}
                   </p>
                   <div className="space-y-2">
                     {[
@@ -269,7 +268,7 @@ export default function Hero() {
       {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50">
         <span className="text-xs" style={{ color: "#94a3b8", fontFamily: "Inter, sans-serif" }}>
-          Aşağı kaydır
+          {t.hero.scroll}
         </span>
         <ChevronDown size={18} style={{ color: "#94a3b8" }} className="animate-bounce" />
       </div>

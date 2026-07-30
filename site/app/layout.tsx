@@ -2,32 +2,27 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nurasiltas.vercel.app"),
   title: {
-    default: "Nur Asıltaş | Sağlık Yazılımı & Healthcare IT Uzmanı",
+    default: "Nur Asıltaş | Healthcare Software & IT Specialist",
     template: "%s | Nur Asıltaş",
   },
   description:
-    "Sağlık sektörüne özel yazılım çözümleri geliştiren uzman. Klinik yönetim sistemi, hasta takip yazılımı, diyaliz yönetimi, healthcare IT danışmanlığı. Türkiye, Katar ve Makedonya'da aktif projeler.",
+    "Software engineer specialising in healthcare solutions. Clinical management systems, patient tracking software, dialysis management, healthcare IT consulting. Active projects in Turkey, Qatar and Macedonia.",
   keywords: [
     "sağlık yazılımı",
     "healthcare IT",
     "klinik yönetim sistemi",
     "hasta takip sistemi",
-    "klinik yazılım geliştirme",
-    "sağlık teknolojileri",
     "healthcare software",
-    "diyaliz yönetim yazılımı",
-    "klinik yazılım mühendisi",
-    "hasta yönetim sistemi",
-    "sağlık bilişimi",
+    "dialysis management software",
+    "clinical software engineer",
+    "patient management system",
     "health information system",
-    "LIS entegrasyonu",
-    "laboratuvar entegrasyon sistemi",
-    "web uygulama geliştirme",
-    "kurumsal yazılım",
+    "LIS integration",
     "Nur Asıltaş",
   ],
   authors: [{ name: "Nur Asıltaş" }],
@@ -36,17 +31,17 @@ export const metadata: Metadata = {
     type: "website",
     locale: "tr_TR",
     url: "https://nurasiltas.vercel.app",
-    siteName: "Nur Asıltaş — Sağlık Yazılımı Uzmanı",
-    title: "Nur Asıltaş | Sağlık Yazılımı & Healthcare IT Uzmanı",
+    siteName: "Nur Asıltaş — Healthcare Software Specialist",
+    title: "Nur Asıltaş | Healthcare Software & IT Specialist",
     description:
-      "Klinik yönetim sistemi, hasta takip yazılımı ve healthcare IT çözümleri. 5+ yıl deneyim, Türkiye ve global klinik merkezlerde aktif projeler.",
-    images: [{ url: "/images/nur-asiltas.jpg", width: 1200, height: 630, alt: "Nur Asıltaş — Sağlık Yazılımı Uzmanı" }],
+      "Clinical management systems, patient tracking software and healthcare IT solutions. 5+ years experience, active projects in Turkey and globally.",
+    images: [{ url: "/images/nur-asiltas.jpg", width: 1200, height: 630, alt: "Nur Asıltaş — Healthcare Software Specialist" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nur Asıltaş | Sağlık Yazılımı & Healthcare IT Uzmanı",
+    title: "Nur Asıltaş | Healthcare Software & IT Specialist",
     description:
-      "Klinik yönetim sistemi, hasta takip yazılımı ve healthcare IT çözümleri. 5+ yıl deneyim.",
+      "Clinical management systems, patient tracking software and healthcare IT solutions. 5+ years experience.",
   },
   robots: { index: true, follow: true },
 };
@@ -66,7 +61,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -76,18 +71,20 @@ export default function RootLayout({
               name: "Nur Asıltaş",
               url: "https://nurasiltas.vercel.app",
               image: "https://nurasiltas.vercel.app/images/nur-asiltas.jpg",
-              jobTitle: "Yazılım Mühendisi",
-              description: "Sağlık sektörüne özel yazılım çözümleri geliştiren uzman. Klinik yönetim sistemi, hasta takip yazılımı ve healthcare IT.",
-              knowsAbout: ["Healthcare IT", "Klinik Yazılım", "Hasta Yönetim Sistemi", "LIS Entegrasyonu", "PHP", "JavaScript", "React", "Next.js"],
-              alumniOf: { "@type": "CollegeOrUniversity", name: "Yaşar Üniversitesi", address: { "@type": "PostalAddress", addressLocality: "İzmir", addressCountry: "TR" } },
+              jobTitle: "Software Engineer",
+              description: "Software engineer specialising in healthcare IT. Clinical management systems, patient tracking and healthcare IT.",
+              knowsAbout: ["Healthcare IT", "Clinical Software", "Patient Management System", "LIS Integration", "PHP", "JavaScript", "React", "Next.js"],
+              alumniOf: { "@type": "CollegeOrUniversity", name: "Yaşar University", address: { "@type": "PostalAddress", addressLocality: "İzmir", addressCountry: "TR" } },
               address: { "@type": "PostalAddress", addressLocality: "İzmir", addressCountry: "TR" },
               sameAs: [],
             }),
           }}
         />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <LanguageProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

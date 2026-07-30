@@ -1,5 +1,9 @@
+"use client";
+
 import { Monitor, GitBranch, BarChart3, Globe, Lightbulb, FlaskConical, Languages, Code2, Rocket } from "lucide-react";
 import { services } from "@/lib/data";
+import { servicesEn } from "@/lib/data-en";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
   Monitor,
@@ -25,6 +29,9 @@ const accentColors = [
 ];
 
 export default function Services() {
+  const { lang, t } = useLanguage();
+  const data = lang === "en" ? servicesEn : services;
+
   return (
     <section className="section-padding bg-white">
       <div className="max-w-6xl mx-auto px-6">
@@ -35,16 +42,16 @@ export default function Services() {
             className="text-4xl font-bold mb-4"
             style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}
           >
-            Sunduğum Hizmetler
+            {t.services.sectionTitle}
           </h2>
           <p className="text-base max-w-2xl mx-auto" style={{ color: "#64748b" }}>
-            Healthcare IT sistemlerinden kurumsal web uygulamalarına, çok dilli platformlardan dönüşüm odaklı landing page'lere — ihtiyacınıza özel yazılım çözümleri.
+            {t.services.sectionDesc}
           </p>
         </div>
 
         {/* Grid — 3 col */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service, i) => {
+          {data.map((service, i) => {
             const Icon = iconMap[service.icon];
             const accent = accentColors[i] ?? "#1e3a5f";
             return (
@@ -120,7 +127,7 @@ export default function Services() {
                       >
                         <span
                           className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 transition-colors duration-300"
-                          style={{ background: accent === "#c9a84c" ? "#c9a84c" : "#c9a84c" }}
+                          style={{ background: "#c9a84c" }}
                         />
                         {f}
                       </li>

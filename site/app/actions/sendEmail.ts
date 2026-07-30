@@ -7,6 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export interface ContactFormData {
   name: string;
   email: string;
+  phone: string;
   company: string;
   subject: string;
   message: string;
@@ -20,7 +21,7 @@ const SUBJECT_LABELS: Record<string, string> = {
 };
 
 export async function sendContactEmail(data: ContactFormData) {
-  const { name, email, company, subject, message } = data;
+  const { name, email, phone, company, subject, message } = data;
   const subjectLabel = SUBJECT_LABELS[subject] ?? subject;
 
   try {
@@ -45,6 +46,11 @@ export async function sendContactEmail(data: ContactFormData) {
                 <td style="padding:8px 0;color:#94a3b8;vertical-align:top;">E-posta</td>
                 <td style="padding:8px 0;"><a href="mailto:${email}" style="color:#1e3a5f;">${email}</a></td>
               </tr>
+              ${phone ? `
+              <tr>
+                <td style="padding:8px 0;color:#94a3b8;vertical-align:top;">Telefon</td>
+                <td style="padding:8px 0;color:#1e293b;">${phone}</td>
+              </tr>` : ""}
               ${company ? `
               <tr>
                 <td style="padding:8px 0;color:#94a3b8;vertical-align:top;">Kurum / Şirket</td>

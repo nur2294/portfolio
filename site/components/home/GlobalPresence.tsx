@@ -1,6 +1,13 @@
+"use client";
+
 import { countries } from "@/lib/data";
+import { countriesEn } from "@/lib/data-en";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function GlobalPresence() {
+  const { lang, t } = useLanguage();
+  const data = lang === "en" ? countriesEn : countries;
+
   return (
     <section className="section-padding bg-white">
       <div className="max-w-6xl mx-auto px-6">
@@ -12,17 +19,17 @@ export default function GlobalPresence() {
               className="text-4xl font-bold mb-5"
               style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}
             >
-              Global Operasyon
+              {t.global.title1}
               <br />
-              <span style={{ color: "#c9a84c" }}>3 Ülke, 1 Platform</span>
+              <span style={{ color: "#c9a84c" }}>{t.global.title2}</span>
             </h2>
             <p className="text-base leading-relaxed mb-8" style={{ color: "#64748b" }}>
-              Türkiye'de başlayan klinik yazılım yolculuğum, Katar ve Kuzey Makedonya'ya uzanan uluslararası bir platforma dönüştü. Her ülkenin yerel mevzuatına, diline ve sağlık sistemine uyum sağlayan esnek mimari ile klinik merkezlerine hizmet verilmesi.
+              {t.global.desc}
             </p>
 
             {/* Country cards */}
             <div className="space-y-4">
-              {countries.map((c) => (
+              {data.map((c) => (
                 <div
                   key={c.code}
                   className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:-translate-x-1"
@@ -46,7 +53,7 @@ export default function GlobalPresence() {
             </div>
           </div>
 
-          {/* Right — visual world map placeholder */}
+          {/* Right — visual */}
           <div className="relative">
             <div
               className="rounded-3xl p-10 relative overflow-hidden"
@@ -80,14 +87,16 @@ export default function GlobalPresence() {
                 >
                   3
                 </p>
-                <p className="font-semibold text-lg mb-8" style={{ color: "#ffffff" }}>Ülke</p>
+                <p className="font-semibold text-lg mb-8" style={{ color: "#ffffff" }}>
+                  {t.global.countryLabel}
+                </p>
 
                 {/* Country pins */}
                 <div className="flex flex-col gap-4 w-full">
                   {[
-                    { flag: "🇹🇷", name: "Türkiye", primary: true },
-                    { flag: "🇶🇦", name: "Katar", primary: false },
-                    { flag: "🇲🇰", name: "Makedonya", primary: false },
+                    { flag: "🇹🇷", name: lang === "en" ? "Turkey" : "Türkiye", primary: true },
+                    { flag: "🇶🇦", name: lang === "en" ? "Qatar" : "Katar", primary: false },
+                    { flag: "🇲🇰", name: lang === "en" ? "North Macedonia" : "Makedonya", primary: false },
                   ].map((item) => (
                     <div
                       key={item.name}
@@ -118,7 +127,7 @@ export default function GlobalPresence() {
                   style={{ borderTop: "1px solid rgba(255,255,255,0.10)" }}
                 >
                   <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    Türkiye · Katar · Kuzey Makedonya
+                    {t.global.countries}
                   </p>
                 </div>
               </div>

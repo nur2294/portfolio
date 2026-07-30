@@ -6,19 +6,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { href: "/", label: "Ana Sayfa" },
-  { href: "/portfolio", label: "Portföy" },
-  { href: "/blog", label: "Blog" },
-  { href: "/about", label: "Hakkımda" },
-  { href: "/contact", label: "İletişim" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { lang, setLang, t } = useLanguage();
+
+  const navLinks = [
+    { href: "/", label: t.nav.home },
+    { href: "/portfolio", label: t.nav.portfolio },
+    { href: "/blog", label: t.nav.blog },
+    { href: "/about", label: t.nav.about },
+    { href: "/contact", label: t.nav.contact },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -60,7 +62,7 @@ export default function Navbar() {
               Nur Asıltaş
             </span>
             <p className="text-xs leading-none" style={{ color: "#94a3b8", fontFamily: "Inter, sans-serif" }}>
-              Yazılım Mühendisi
+              {lang === "en" ? "Software Engineer" : "Yazılım Mühendisi"}
             </p>
           </div>
         </Link>
@@ -86,27 +88,70 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+
+          {/* Language toggle */}
+          <div
+            className="ml-2 flex items-center rounded-lg overflow-hidden"
+            style={{ border: "1.5px solid rgba(30,58,95,0.20)", background: "rgba(30,58,95,0.04)" }}
+          >
+            {(["tr", "en"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200"
+                style={
+                  lang === l
+                    ? { background: "#1e3a5f", color: "white" }
+                    : { color: "#1e3a5f", background: "transparent" }
+                }
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+
           <Link
             href="/contact"
-            className="ml-4 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg"
+            className="ml-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg"
             style={{
               background: "linear-gradient(135deg, #c9a84c 0%, #e2c47a 100%)",
               boxShadow: "0 2px 12px rgba(201,168,76,0.30)",
             }}
           >
-            Proje Teklifi Al
+            {t.nav.cta}
           </Link>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="md:hidden p-2 rounded-lg transition-colors"
-          style={{ color: "#1e3a5f" }}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Menüyü aç/kapat"
-        >
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Mobile right: lang toggle + hamburger */}
+        <div className="md:hidden flex items-center gap-2">
+          <div
+            className="flex items-center rounded-lg overflow-hidden"
+            style={{ border: "1.5px solid rgba(30,58,95,0.20)", background: "rgba(30,58,95,0.04)" }}
+          >
+            {(["tr", "en"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className="px-2.5 py-1 text-xs font-bold uppercase tracking-wider transition-all"
+                style={
+                  lang === l
+                    ? { background: "#1e3a5f", color: "white" }
+                    : { color: "#1e3a5f", background: "transparent" }
+                }
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+          <button
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: "#1e3a5f" }}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={t.nav.menuToggle}
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Menu */}
@@ -138,7 +183,7 @@ export default function Navbar() {
             className="mt-2 px-5 py-3 rounded-xl text-sm font-semibold text-white text-center"
             style={{ background: "linear-gradient(135deg, #c9a84c 0%, #e2c47a 100%)" }}
           >
-            Proje Teklifi Al
+            {t.nav.cta}
           </Link>
         </div>
       </div>
