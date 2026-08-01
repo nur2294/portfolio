@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NephroGlobal — LIS Integration</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.frame{width:1200px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.5)}
+.frame-bar{background:#334155;height:38px;display:flex;align-items:center;padding:0 16px;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+.url-bar{background:#1e293b;border-radius:6px;flex:1;height:24px;margin:0 16px;display:flex;align-items:center;padding:0 12px;font-size:11px;color:#64748b}
+
+.app{display:flex;height:660px}
+
+.sidebar{width:220px;background:#fff;border-right:1px solid #e5e7eb;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
+.sidebar-brand{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e5e7eb}
+.brand-text{font-size:13px;font-weight:700;color:#1f6b6b}
+.search-input{width:calc(100% - 24px);margin:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:6px 10px;font-size:11px;color:#9ca3af;display:flex;align-items:center;justify-content:space-between}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;font-size:12px;color:#374151;border-bottom:1px solid #f9fafb;font-weight:500}
+.nav-item.open{background:#f0fafa;color:#1f6b6b;font-weight:700;border-left:3px solid #1f6b6b}
+.sub-item{padding:8px 16px 8px 28px;font-size:11px;color:#6b7280;border-bottom:1px solid #f9fafb;display:flex;align-items:center;gap:6px}
+.sub-item.active{color:#1f6b6b;font-weight:600;background:#f0fafa}
+.sub-dot{width:6px;height:6px;border-radius:50%;background:#1f6b6b;flex-shrink:0}
+.chevron{font-size:10px;color:#9ca3af}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:#1f6b6b;height:48px;display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;justify-content:flex-end}
+.clinic-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px}
+.profile-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:20px;padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px}
+.breadcrumb-bar{padding:8px 20px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;color:#6b7280;display:flex;align-items:center;gap:6px}
+
+.content{flex:1;padding:16px 20px;overflow-y:auto}
+
+/* Filter bar */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.date-group{display:flex;align-items:center;gap:6px}
+.date-label{font-size:11px;color:#374151;font-weight:600}
+.date-input{border:1px solid #e5e7eb;border-radius:4px;padding:5px 10px;font-size:11px;color:#111827;display:flex;align-items:center;gap:6px;background:white;min-width:110px}
+.btn-lis{padding:7px 16px;border-radius:4px;font-size:11px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-teal{background:#1f6b6b;color:white}
+.btn-gold{background:#f59e0b;color:white}
+.search-bar{display:flex;align-items:center;gap:6px;border:1px solid #e5e7eb;border-radius:4px;padding:5px 12px;background:white;margin-left:auto;min-width:200px;font-size:11px;color:#9ca3af}
+
+/* Table */
+.table-wrap{background:white;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.table-header{display:grid;grid-template-columns:40px 1fr 180px 120px 160px 110px 1fr;gap:0;background:#f9fafb;border-bottom:2px solid #e5e7eb}
+.th{padding:9px 12px;font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.4px;border-right:1px solid #e5e7eb}
+.th:last-child{border-right:none}
+
+.table-row{display:grid;grid-template-columns:40px 1fr 180px 120px 160px 110px 1fr;border-bottom:1px solid #f3f4f6;transition:background 0.1s}
+.table-row:hover{background:#f0fafa}
+.table-row:last-child{border-bottom:none}
+.td{padding:9px 12px;font-size:11px;color:#374151;border-right:1px solid #f3f4f6;display:flex;align-items:center}
+.td:last-child{border-right:none}
+.td-num{color:#9ca3af;font-weight:600;font-size:10px}
+.td-name{font-weight:700;color:#111827}
+.td-id{font-size:10px;color:#6b7280;margin-top:1px}
+.confirmed-badge{background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.pending-badge{background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.btn-save{background:#16a34a;color:white;border:none;border-radius:4px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;line-height:1.4;text-align:center}
+.btn-save:hover{background:#15803d}
+
+/* Summary bar */
+.summary{display:flex;gap:14px;margin-bottom:12px}
+.sum-card{background:white;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;display:flex;flex-direction:column;gap:2px}
+.sum-label{font-size:9px;color:#9ca3af;text-transform:uppercase;font-weight:700}
+.sum-value{font-size:20px;font-weight:800;color:#1f6b6b}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="frame-bar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <div class="url-bar">🔒 nephroglobal.app/laboratory/lis — 🔒 Confidential Client · LIS Integration</div>
+  </div>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-brand"><div class="brand-text">NephroGlobal</div><div style="margin-left:auto;color:#9ca3af">☰</div></div>
+      <div class="search-input"><span>Search ...</span><span>🔍</span></div>
+      <div class="nav-item">DASHBOARD</div>
+      <div class="nav-item">Translator</div>
+      <div class="nav-item">Patient <span class="chevron">›</span></div>
+      <div class="nav-item open">Laboratory <span class="chevron">▾</span></div>
+      <div class="sub-item">Lab Orders</div>
+      <div class="sub-item active"><div class="sub-dot"></div>LIS Integration</div>
+      <div class="sub-item">Lab Results</div>
+      <div class="sub-item">Result Trends</div>
+      <div class="nav-item">Referral <span class="chevron">›</span></div>
+      <div class="nav-item">Treatment <span class="chevron">›</span></div>
+      <div class="nav-item">Incident Management <span class="chevron">›</span></div>
+      <div class="nav-item">Reports <span class="chevron">›</span></div>
+      <div class="nav-item">Other <span class="chevron">›</span></div>
+      <div class="nav-item">Survey <span class="chevron">›</span></div>
+      <div class="nav-item">Clinical Definition <span class="chevron">›</span></div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="clinic-btn">🏥 Confidential Client ▾</div>
+        <div class="profile-btn">👤 PROFILE ▾</div>
+      </div>
+      <div class="breadcrumb-bar">
+        <span style="color:#1f6b6b">🏠</span> Patient Care <span>/</span>
+        <span style="color:#1f6b6b">🧪</span> Laboratory <span>/</span>
+        <strong>LIS Integration — Get &amp; Save Results</strong>
+      </div>
+
+      <div class="content">
+        <!-- Summary -->
+        <div class="summary">
+          <div class="sum-card"><div class="sum-label">Total Patients</div><div class="sum-value">13</div></div>
+          <div class="sum-card"><div class="sum-label">Confirmed</div><div class="sum-value" style="color:#16a34a">11</div></div>
+          <div class="sum-card"><div class="sum-label">Pending</div><div class="sum-value" style="color:#f59e0b">2</div></div>
+          <div class="sum-card"><div class="sum-label">Date Range</div><div class="sum-value" style="font-size:13px;margin-top:2px">01–31 May 2026</div></div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="date-group">
+            <div class="date-label">Start Date</div>
+            <div class="date-input">📅 01/05/2026</div>
+          </div>
+          <div class="date-group">
+            <div class="date-label">End Date</div>
+            <div class="date-input">📅 31/05/2026</div>
+          </div>
+          <button class="btn-lis btn-teal">🔄 Get HIS Patients From LIS</button>
+          <button class="btn-lis btn-gold">💾 Get All &amp; Save Results From LIS</button>
+          <div class="search-bar">🔍 Search patient name, ID...</div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="th">#</div>
+            <div class="th">Patient Name &amp; Surname</div>
+            <div class="th">Patient Identity No.</div>
+            <div class="th">Profile</div>
+            <div class="th">Blood Samp. Date</div>
+            <div class="th">Order No</div>
+            <div class="th">Get &amp; Save Results</div>
+          </div>
+
+          <!-- Rows with anonymized data -->
+          <div class="table-row">
+            <div class="td td-num">1</div>
+            <div class="td"><div><div class="td-name">Patient A. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***4470017</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-04 20:00:00</div>
+            <div class="td" style="font-weight:700;color:#374151">45771</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">2</div>
+            <div class="td"><div><div class="td-name">Patient B. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***9437011</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-06 09:52:58</div>
+            <div class="td" style="font-weight:700;color:#374151">45831</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">3</div>
+            <div class="td"><div><div class="td-name">Patient C. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***9450113</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-11 07:05:00</div>
+            <div class="td" style="font-weight:700;color:#374151">45888</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">4</div>
+            <div class="td"><div><div class="td-name">Patient D. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***5483024</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-11 09:09:58</div>
+            <div class="td" style="font-weight:700;color:#374151">45893</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">5</div>
+            <div class="td"><div><div class="td-name">Patient E. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***9450178</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-11 13:48:16</div>
+            <div class="td" style="font-weight:700;color:#374151">45938</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">6</div>
+            <div class="td"><div><div class="td-name">Patient F. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***7961450</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-11 13:57:46</div>
+            <div class="td" style="font-weight:700;color:#374151">45939</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">7</div>
+            <div class="td"><div><div class="td-name">Patient G. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***2974455</div>
+            <div class="td"><span class="pending-badge">Pending</span></div>
+            <div class="td" style="font-size:10px">2026-05-11 18:53:56</div>
+            <div class="td" style="font-weight:700;color:#374151">45941</div>
+            <div class="td"><button class="btn-save" style="background:#9ca3af">Awaiting LIS</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">8</div>
+            <div class="td"><div><div class="td-name">Patient H. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***1958450</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-12 07:07:00</div>
+            <div class="td" style="font-weight:700;color:#374151">45942</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">9</div>
+            <div class="td"><div><div class="td-name">Patient I. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***0975455</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-15 07:50:12</div>
+            <div class="td" style="font-weight:700;color:#374151">46071</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">10</div>
+            <div class="td"><div><div class="td-name">Patient J. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***9959455</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-18 07:05:00</div>
+            <div class="td" style="font-weight:700;color:#374151">46140</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">11</div>
+            <div class="td"><div><div class="td-name">Patient K. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***1955450</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-19 07:00:00</div>
+            <div class="td" style="font-weight:700;color:#374151">46244</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">12</div>
+            <div class="td"><div><div class="td-name">Patient L. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***4987453</div>
+            <div class="td"><span class="confirmed-badge">Confirmed</span></div>
+            <div class="td" style="font-size:10px">2026-05-19 13:00:00</div>
+            <div class="td" style="font-weight:700;color:#374151">46245</div>
+            <div class="td"><button class="btn-save">Get Result &amp;<br>Save to File</button></div>
+          </div>
+          <div class="table-row">
+            <div class="td td-num">13</div>
+            <div class="td"><div><div class="td-name">Patient M. — 🔒</div><div class="td-id">Demo Record</div></div></div>
+            <div class="td" style="font-size:10px;color:#6b7280">***6972415</div>
+            <div class="td"><span class="pending-badge">Pending</span></div>
+            <div class="td" style="font-size:10px">2026-05-19 13:00:00</div>
+            <div class="td" style="font-weight:700;color:#374151">46246</div>
+            <div class="td"><button class="btn-save" style="background:#9ca3af">Awaiting LIS</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

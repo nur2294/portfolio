@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicDesk — Examination</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+
+  .sidebar { width: 230px; background: #1a3a4a; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 14px 16px; background: #0f2535; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a4a5a; }
+  .logo-icon { width: 32px; height: 32px; background: #2a9d8f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .logo-text { color: #fff; font-size: 14px; font-weight: 700; }
+  .logo-sub { color: #7fbbcc; font-size: 9px; }
+  .sidebar-section { padding: 8px 10px 4px; color: #7fbbcc; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar-item { padding: 9px 14px; color: #c8dde4; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 9px; border-radius: 6px; margin: 1px 6px; }
+  .sidebar-item.active { background: #2a9d8f; color: #fff; }
+  .sidebar-item.sub { padding-left: 32px; font-size: 11px; color: #a0c4cc; }
+  .sidebar-item.sub.active { background: rgba(42,157,143,0.3); color: #fff; }
+  .sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .topbar { background: #1a3a4a; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2a9d8f; flex-shrink: 0; }
+  .topbar-title { color: #fff; font-size: 15px; font-weight: 700; }
+  .topbar-subtitle { color: #7fbbcc; font-size: 11px; }
+  .topbar-badge { background: rgba(42,157,143,0.2); border: 1px solid #2a9d8f; color: #7fdbcc; font-size: 10px; padding: 4px 10px; border-radius: 20px; }
+  .profile-btn { background: #2a9d8f; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; }
+
+  /* Patient bar */
+  .patient-bar { background: #fff; padding: 8px 20px; border-bottom: 1px solid #e8eef2; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .patient-avatar { width: 36px; height: 36px; background: #2a9d8f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; }
+  .patient-name { font-size: 14px; font-weight: 700; color: #1a3a4a; }
+  .patient-meta { font-size: 10px; color: #7f9aaa; }
+  .patient-tag { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .nav-arrow { width: 28px; height: 28px; background: #f0f4f6; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; color: #5a7a8a; display: flex; align-items: center; justify-content: center; }
+
+  .content { flex: 1; overflow-y: auto; padding: 14px; display: flex; gap: 12px; }
+
+  /* Left summary */
+  .summary-col { width: 195px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+  .sum-card { background: #fff; border-radius: 10px; padding: 12px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .sum-title { font-size: 9px; font-weight: 800; color: #1a3a4a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f0f4f6; }
+  .sum-row { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center; }
+  .sum-label { font-size: 10px; color: #7f9aaa; }
+  .sum-value { font-size: 10px; font-weight: 700; color: #1a3a4a; }
+  .vital-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .vital-box { background: #f8fafb; border-radius: 8px; padding: 8px; text-align: center; }
+  .vital-num { font-size: 16px; font-weight: 800; color: #1a3a4a; }
+  .vital-unit { font-size: 9px; color: #9ab0bb; }
+  .vital-name { font-size: 9px; color: #7f9aaa; margin-top: 2px; }
+  .diag-tag { display: inline-block; margin: 2px; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+
+  /* Main form */
+  .form-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+  .section-header { padding: 10px 14px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid #f0f4f6; cursor: pointer; }
+  .sec-icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .sec-title { font-size: 12px; font-weight: 700; color: #1a3a4a; flex: 1; }
+  .sec-badge { padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 700; }
+  .collapse-icon { font-size: 11px; color: #9ab0bb; }
+  .section-body { padding: 12px 14px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-label { font-size: 10px; font-weight: 700; color: #5a7a8a; text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-input { padding: 8px 10px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; background: #f8fafb; outline: none; }
+  .form-input.filled { border-color: #2a9d8f; background: #f8fefc; color: #1a3a4a; font-weight: 500; }
+  .form-textarea { width: 100%; padding: 9px 11px; border: 1px solid #d1e5ec; border-radius: 8px; font-size: 12px; color: #334; background: #f8fafb; resize: none; font-family: inherit; outline: none; line-height: 1.5; }
+  .form-textarea.filled { border-color: #2a9d8f; background: #f8fefc; color: #1a3a4a; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  /* Sistem sorgulaması checkboxes */
+  .check-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .check-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 6px; border: 1px solid #e8eef2; cursor: pointer; background: #f8fafb; }
+  .check-item.checked { background: #f0faf8; border-color: #2a9d8f; }
+  .check-box { width: 14px; height: 14px; border-radius: 3px; border: 2px solid #b0cdd8; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+  .check-item.checked .check-box { background: #2a9d8f; border-color: #2a9d8f; color: #fff; }
+  .check-label { font-size: 10px; color: #5a7a8a; font-weight: 500; }
+  .check-item.checked .check-label { color: #1a3a4a; font-weight: 700; }
+
+  /* ICD codes */
+  .icd-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; margin: 2px; cursor: pointer; }
+  .icd-x { opacity: 0.6; font-size: 11px; }
+
+  /* Action bar */
+  .action-bar { background: #fff; border-radius: 10px; padding: 11px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 8px; }
+  .btn-draft { padding: 8px 14px; background: #f0f4f6; border: none; border-radius: 8px; color: #5a7a8a; font-size: 11px; cursor: pointer; font-weight: 600; }
+  .btn-save { padding: 8px 18px; background: #2a9d8f; border: none; border-radius: 8px; color: #fff; font-size: 12px; cursor: pointer; font-weight: 700; }
+  .btn-prescription { padding: 8px 14px; background: #eef2fb; border: none; border-radius: 8px; color: #2a4ab0; font-size: 11px; cursor: pointer; font-weight: 600; }
+  .btn-lab { padding: 8px 14px; background: #fff3e8; border: none; border-radius: 8px; color: #c06010; font-size: 11px; cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏥</div>
+    <div>
+      <div class="logo-text">ClinicDesk</div>
+      <div class="logo-sub">Outpatient Clinic Management System</div>
+    </div>
+  </div>
+  <div style="padding: 10px 0; flex: 1; overflow-y: auto;">
+    <div class="sidebar-section">Main Menu</div>
+    <div class="sidebar-item"><span class="sidebar-icon">👥</span> Bulk Patient View</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📅</span> Calendar - Appointments</div>
+    <div class="sidebar-section" style="margin-top:6px;">Patient Operations</div>
+    <div class="sidebar-item sub">New Patient Registration</div>
+    <div class="sidebar-item sub">Update Patient</div>
+    <div class="sidebar-item sub active">Examination</div>
+    <div class="sidebar-item sub">Patient Follow-up</div>
+    <div class="sidebar-item sub">Pathology</div>
+    <div class="sidebar-item sub">Medication Treatment</div>
+    <div class="sidebar-item sub">Laboratory</div>
+    <div class="sidebar-item sub">Patient Documents</div>
+    <div class="sidebar-item sub">Patient List</div>
+    <div class="sidebar-item sub">Epicrisis</div>
+    <div class="sidebar-item sub">Laboratory Test Request</div>
+    <div class="sidebar-section" style="margin-top:6px;">System</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📊</span> Reports</div>
+    <div class="sidebar-item"><span class="sidebar-icon">⚙️</span> Settings</div>
+  </div>
+  <div style="padding: 12px; border-top: 1px solid #2a4a5a;">
+    <div style="font-size: 10px; color: #5a8090;">Logged-in User</div>
+    <div style="font-size: 11px; color: #c8dde4; font-weight: 600; margin-top: 2px;">🔒 Confidential Client</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Examination</div>
+      <div class="topbar-subtitle">ClinicDesk · Patient Operations</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-badge">📅 08 Jan 2025</div>
+      <div class="topbar-badge">🩺 Examination Form</div>
+      <button class="profile-btn">👤 Profile</button>
+    </div>
+  </div>
+
+  <!-- Patient nav bar -->
+  <div class="patient-bar">
+    <button class="nav-arrow">‹</button>
+    <div class="patient-avatar">AY</div>
+    <div>
+      <div class="patient-name">Patient A — [Last Name]</div>
+      <div class="patient-meta">ID: ***4821 &nbsp;|&nbsp; 52 yrs &nbsp;|&nbsp; Male &nbsp;|&nbsp; A+ &nbsp;|&nbsp; Dr. Andrew K.</div>
+    </div>
+    <div class="patient-tag" style="background:#e8f4f0;color:#1a6b5a;">● Active Patient</div>
+    <div class="patient-tag" style="background:#fef9e7;color:#9a7d0a;">⚠ DM-2 · HT</div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <span style="font-size:10px;color:#7f9aaa;">Previous Examinations:</span>
+      <span style="font-size:10px;font-weight:700;color:#2a9d8f;background:#e8f4f0;padding:3px 10px;border-radius:10px;">12 records</span>
+    </div>
+    <button class="nav-arrow">›</button>
+  </div>
+
+  <div class="content">
+
+    <!-- Summary column -->
+    <div class="summary-col">
+      <div class="sum-card">
+        <div class="sum-title">Patient Summary</div>
+        <div class="sum-row"><span class="sum-label">Patient No</span><span class="sum-value" style="font-family:monospace;font-size:9px;">CD-2025-1087</span></div>
+        <div class="sum-row"><span class="sum-label">Reg. Date</span><span class="sum-value">14.03.2021</span></div>
+        <div class="sum-row"><span class="sum-label">Last Exam.</span><span class="sum-value" style="color:#2a9d8f;">02.01.2025</span></div>
+        <div class="sum-row"><span class="sum-label">Doctor</span><span class="sum-value">Dr. Andrew K.</span></div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f4f6;">
+          <div class="sum-label" style="margin-bottom:6px;">Chronic Diagnoses</div>
+          <div><span class="diag-tag" style="background:#fef9e7;color:#9a7d0a;">DM-2</span><span class="diag-tag" style="background:#fdecea;color:#c0392b;">HT</span><span class="diag-tag" style="background:#f3e8ff;color:#7b2d8b;">CVD</span></div>
+        </div>
+      </div>
+
+      <div class="sum-card">
+        <div class="sum-title">Latest Vital Signs</div>
+        <div class="vital-grid">
+          <div class="vital-box"><div class="vital-num">128<span style="font-size:10px;">/82</span></div><div class="vital-unit">mmHg</div><div class="vital-name">Blood Pressure</div></div>
+          <div class="vital-box"><div class="vital-num">78</div><div class="vital-unit">bpm</div><div class="vital-name">Pulse</div></div>
+          <div class="vital-box"><div class="vital-num">36.8</div><div class="vital-unit">°C</div><div class="vital-name">Temperature</div></div>
+          <div class="vital-box"><div class="vital-num">98</div><div class="vital-unit">%</div><div class="vital-name">SpO2</div></div>
+          <div class="vital-box"><div class="vital-num">176</div><div class="vital-unit">cm</div><div class="vital-name">Height</div></div>
+          <div class="vital-box" style="background:#fff3e8;"><div class="vital-num" style="color:#c06010;">94</div><div class="vital-unit">kg</div><div class="vital-name">Weight</div></div>
+        </div>
+        <div style="margin-top:8px;padding:6px;background:#f8fafb;border-radius:6px;text-align:center;">
+          <span style="font-size:10px;color:#7f9aaa;">BMI: </span>
+          <span style="font-size:12px;font-weight:800;color:#c06010;">30.3</span>
+          <span style="font-size:9px;color:#9ab0bb;"> — Obese I</span>
+        </div>
+      </div>
+
+      <div class="sum-card">
+        <div class="sum-title">Current Medications</div>
+        <div style="font-size:10px;color:#334;line-height:1.7;">
+          💊 Metformin 1000mg <span style="color:#9ab0bb;">2×1</span><br>
+          💊 Amlodipine 5mg <span style="color:#9ab0bb;">1×1</span><br>
+          💊 Atorvastatin 20mg <span style="color:#9ab0bb;">at night</span><br>
+          💊 Aspirin 100mg <span style="color:#9ab0bb;">1×1</span>
+        </div>
+        <div style="margin-top:8px;">
+          <span style="font-size:9px;color:#e74c3c;font-weight:700;">⚠ Allergy:</span>
+          <span style="font-size:9px;color:#c0392b;"> Penicillin</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form column -->
+    <div class="form-col">
+
+      <!-- Vital Bulgular (güncel) -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#e8f4f0;">📊</div>
+          <div class="sec-title">Vital Signs</div>
+          <div class="sec-badge" style="background:#e8f4f0;color:#1a6b5a;">Today</div>
+        </div>
+        <div class="section-body">
+          <div class="grid-3">
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Blood Pressure (mmHg)</div>
+              <input class="form-input" placeholder="e.g. 130/85" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Pulse (bpm)</div>
+              <input class="form-input" placeholder="e.g. 76" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Temperature (°C)</div>
+              <input class="form-input" placeholder="e.g. 36.7" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">SpO2 (%)</div>
+              <input class="form-input" placeholder="e.g. 98" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Weight (kg)</div>
+              <input class="form-input" placeholder="e.g. 94" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Respiration (per min)</div>
+              <input class="form-input" placeholder="e.g. 16" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hasta Yakınma -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#fdecea;">🗣️</div>
+          <div class="sec-title">Chief Complaint</div>
+          <div class="sec-badge" style="background:#e8f4f0;color:#1a6b5a;">Complete</div>
+          <span class="collapse-icon">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-group">
+            <div class="form-label">Complaint</div>
+            <textarea class="form-textarea filled" rows="2">Presented with dizziness, fatigue, and mild headache. Symptoms have persisted for approximately 3 days.</textarea>
+          </div>
+          <div class="grid-2">
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Complaint Duration</div>
+              <input class="form-input filled" value="3 days" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Pain Score (0–10)</div>
+              <input class="form-input filled" value="4 / 10" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hasta Öyküsü -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#eef2fb;">📋</div>
+          <div class="sec-title">Patient History</div>
+          <span class="collapse-icon">▾</span>
+        </div>
+        <div class="section-body">
+          <textarea class="form-textarea" rows="3" placeholder="Onset and course of illness, treatments administered, hospitalization history..."></textarea>
+        </div>
+      </div>
+
+      <!-- Sistem Sorgulaması -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#f3e8ff;">🔍</div>
+          <div class="sec-title">Review of Systems</div>
+          <span class="collapse-icon">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="check-grid">
+            <div class="check-item checked"><div class="check-box">✓</div><div class="check-label">Cardiovascular</div></div>
+            <div class="check-item checked"><div class="check-box">✓</div><div class="check-label">Respiratory</div></div>
+            <div class="check-item"><div class="check-box"></div><div class="check-label">Digestive</div></div>
+            <div class="check-item"><div class="check-box"></div><div class="check-label">Genitourinary</div></div>
+            <div class="check-item checked"><div class="check-box">✓</div><div class="check-label">Neurological</div></div>
+            <div class="check-item"><div class="check-box"></div><div class="check-label">Musculoskeletal</div></div>
+            <div class="check-item"><div class="check-box"></div><div class="check-label">Skin</div></div>
+            <div class="check-item"><div class="check-box"></div><div class="check-label">Endocrine</div></div>
+            <div class="check-item"><div class="check-box"></div><div class="check-label">Psychiatric</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Özgeçmiş & Soygeçmiş -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#fff3e8;">🧬</div>
+          <div class="sec-title">Past Medical History &amp; Family History</div>
+          <span class="collapse-icon">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="grid-2">
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Past Medical History (Chronic/Surgical)</div>
+              <textarea class="form-textarea filled" rows="3">Type 2 DM (2018), Hypertension (2019), Appendectomy (2005)</textarea>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Family History</div>
+              <textarea class="form-textarea" rows="3" placeholder="Family history of DM, HT, CVD, cancer, etc..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alışkanlıklar -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#fef9e7;">🚬</div>
+          <div class="sec-title">Habits</div>
+          <span class="collapse-icon">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="grid-3">
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Smoking</div>
+              <select class="form-select filled"><option>Former Smoker</option><option>Current Smoker</option><option>None</option></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Alcohol</div>
+              <select class="form-select"><option>None</option><option>Social</option><option>Regular</option></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <div class="form-label">Exercise</div>
+              <select class="form-select"><option>Irregular</option><option>Regular</option><option>None</option></select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tanı & ICD -->
+      <div class="section">
+        <div class="section-header">
+          <div class="sec-icon" style="background:#e8f4f0;">🏷️</div>
+          <div class="sec-title">Diagnosis (ICD-10)</div>
+          <div class="sec-badge" style="background:#e8f4f0;color:#1a6b5a;">2 Diagnoses</div>
+        </div>
+        <div class="section-body">
+          <div style="margin-bottom:10px;">
+            <span class="icd-tag" style="background:#fef9e7;color:#9a7d0a;">E11 — Type 2 DM <span class="icd-x">×</span></span>
+            <span class="icd-tag" style="background:#fdecea;color:#c0392b;">I10 — Essential Hypertension <span class="icd-x">×</span></span>
+            <span class="icd-tag" style="background:#e8f0fb;color:#2a4ab0;">+ Add ICD</span>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <div class="form-label">Examination Note</div>
+            <textarea class="form-textarea" rows="2" placeholder="Physician assessment, treatment plan, recommendations..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="action-bar">
+        <button class="btn-draft">Save Draft</button>
+        <button class="btn-prescription">💊 Write Prescription</button>
+        <button class="btn-lab">🔬 Order Lab Test</button>
+        <div style="flex:1;"></div>
+        <button class="btn-save">✅ Complete Examination</button>
+      </div>
+
+    </div><!-- /form-col -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+</body>
+</html>

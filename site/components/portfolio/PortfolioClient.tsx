@@ -3,25 +3,29 @@
 import { useState } from "react";
 import Link from "next/link";
 import { projects } from "@/lib/data";
+import { projectsEn } from "@/lib/data-en";
 import type { Project } from "@/types";
 import { ExternalLink, Maximize2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getMockupSrc } from "@/lib/utils";
 import MockupModal from "@/components/ui/MockupModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function ProjectCard({ project }: { project: Project }) {
   const [modalOpen, setModalOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const categoryLabel = t.portfolio.categories[project.category as keyof typeof t.portfolio.categories] ?? project.category;
 
+  const mockupSrc = project.mockup ? getMockupSrc(project.mockup, lang) : undefined;
+  const mockupsLocalized = project.mockups?.map((m) => ({ ...m, src: getMockupSrc(m.src, lang) }));
+
   return (
     <>
-      {modalOpen && (project.mockup || project.mockups) && (
+      {modalOpen && (mockupSrc || mockupsLocalized) && (
         <MockupModal
-          src={project.mockup ?? project.mockups![0].src}
+          src={mockupSrc ?? mockupsLocalized![0].src}
           title={project.title}
-          mockups={project.mockups}
+          mockups={mockupsLocalized}
           onClose={() => setModalOpen(false)}
         />
       )}
@@ -30,10 +34,10 @@ function ProjectCard({ project }: { project: Project }) {
       style={{ boxShadow: "0 2px 20px rgba(30,58,95,0.08)", border: "1px solid #f1f5f9" }}
     >
       <div className="h-56 relative overflow-hidden">
-        {project.mockup ? (
+        {mockupSrc ? (
           <>
             <iframe
-              src={project.mockup}
+              src={mockupSrc}
               className="absolute inset-0 pointer-events-none"
               style={{
                 border: "none",
@@ -156,8 +160,9 @@ function ProjectCard({ project }: { project: Project }) {
 
 export default function PortfolioClient() {
   const [active, setActive] = useState("all");
-  const { t } = useLanguage();
-  const filtered = active === "all" ? projects : projects.filter((p) => p.category === active);
+  const { t, lang } = useLanguage();
+  const projectList = lang === "en" ? projectsEn : projects;
+  const filtered = active === "all" ? projectList : projectList.filter((p) => p.category === active);
 
   const categories = [
     { value: "all", label: t.portfolio.filters.all },

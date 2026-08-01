@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NephroGlobal — Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+
+.frame{width:1200px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.5)}
+.frame-bar{background:#334155;height:38px;display:flex;align-items:center;padding:0 16px;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+.url-bar{background:#1e293b;border-radius:6px;flex:1;height:24px;margin:0 16px;display:flex;align-items:center;padding:0 12px;font-size:11px;color:#64748b}
+
+.app{display:flex;height:660px}
+
+/* Sidebar */
+.sidebar{width:220px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sidebar-brand{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e5e7eb}
+.brand-text{font-size:13px;font-weight:700;color:#1f6b6b}
+.hamburger{margin-left:auto;font-size:16px;color:#64748b}
+.search-box{padding:10px 12px;border-bottom:1px solid #e5e7eb}
+.search-input{width:100%;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:6px 10px;font-size:11px;color:#374151;display:flex;align-items:center;gap:6px}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;font-size:12px;color:#374151;font-weight:500;cursor:pointer;border-bottom:1px solid #f9fafb}
+.nav-item:hover,.nav-item.active{background:#f0fafa;color:#1f6b6b}
+.nav-item.active{font-weight:700;border-left:3px solid #1f6b6b}
+.nav-item.dashboard{background:#1f6b6b;color:white;font-weight:700}
+.chevron{font-size:10px;color:#9ca3af}
+
+/* Topbar */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:#1f6b6b;height:48px;display:flex;align-items:center;justify-content:flex-end;padding:0 20px;gap:10px;flex-shrink:0}
+.clinic-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px}
+.profile-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:20px;padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px}
+
+.breadcrumb-bar{padding:8px 20px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;color:#6b7280;display:flex;align-items:center;gap:6px}
+.breadcrumb-bar .icon{color:#1f6b6b}
+
+/* Calendar */
+.calendar-area{flex:1;padding:16px 20px;overflow-y:auto}
+.cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.cal-btn{background:#1f6b6b;color:white;border:none;border-radius:4px;width:28px;height:28px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cal-btn.today{width:auto;padding:0 12px;font-size:11px;font-weight:700;background:#1f6b6b}
+.cal-title{flex:1;text-align:center;font-size:18px;font-weight:600;color:#111827}
+.view-btns{display:flex;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden}
+.view-btn{padding:5px 12px;font-size:11px;font-weight:600;color:#374151;background:#fff;cursor:pointer;border:none}
+.view-btn.active{background:#1f6b6b;color:white}
+
+.calendar{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);background:#f9fafb;border-bottom:1px solid #e5e7eb}
+.cal-day-name{padding:8px;text-align:center;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:0.5px}
+.cal-body{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:88px;border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:6px;position:relative}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-num{font-size:12px;color:#374151;font-weight:500}
+.cal-num.other-month{color:#d1d5db}
+.cal-num.today{background:#1f6b6b;color:white;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.cal-cell.today-cell{background:#fefce8}
+.cal-event{background:#1f6b6b;color:white;font-size:9px;padding:2px 5px;border-radius:3px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-event.teal{background:#0d9488}
+.cal-event.blue{background:#3b82f6}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="frame-bar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <div class="url-bar">🔒 nephroglobal.app/dashboard — 🔒 Confidential Client</div>
+  </div>
+  <div class="app">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-text">NephroGlobal</div>
+        <div class="hamburger">☰</div>
+      </div>
+      <div class="search-box">
+        <div class="search-input">
+          <span style="color:#9ca3af">Search ...</span>
+          <span style="margin-left:auto;color:#9ca3af">🔍</span>
+        </div>
+      </div>
+      <div class="nav-item dashboard">DASHBOARD</div>
+      <div class="nav-item">Translator</div>
+      <div class="nav-item">Patient <span class="chevron">›</span></div>
+      <div class="nav-item">Laboratory <span class="chevron">›</span></div>
+      <div class="nav-item">Referral <span class="chevron">›</span></div>
+      <div class="nav-item">Treatment <span class="chevron">›</span></div>
+      <div class="nav-item">Incident Management <span class="chevron">›</span></div>
+      <div class="nav-item">Reports <span class="chevron">›</span></div>
+      <div class="nav-item">Other <span class="chevron">›</span></div>
+      <div class="nav-item">Survey <span class="chevron">›</span></div>
+      <div class="nav-item">Clinical Definition <span class="chevron">›</span></div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="clinic-btn">🏥 Confidential Client ▾</div>
+        <div class="profile-btn">👤 PROFILE ▾</div>
+      </div>
+      <div class="breadcrumb-bar">
+        <span class="icon">🏠</span> Patient Care <span>/</span> <strong>Dashboard</strong>
+      </div>
+      <div class="calendar-area">
+        <!-- Nav -->
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <div style="font-size:18px;color:#1f6b6b">📅</div>
+        </div>
+        <div class="cal-nav">
+          <button class="cal-btn">«</button>
+          <button class="cal-btn">‹</button>
+          <button class="cal-btn">›</button>
+          <button class="cal-btn">»</button>
+          <button class="cal-btn today">today</button>
+          <div class="cal-title">May 2026</div>
+          <div class="view-btns">
+            <button class="view-btn active">month</button>
+            <button class="view-btn">week</button>
+            <button class="view-btn">day</button>
+          </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar">
+          <div class="cal-header">
+            <div class="cal-day-name">Sun</div>
+            <div class="cal-day-name">Mon</div>
+            <div class="cal-day-name">Tue</div>
+            <div class="cal-day-name">Wed</div>
+            <div class="cal-day-name">Thu</div>
+            <div class="cal-day-name">Fri</div>
+            <div class="cal-day-name">Sat</div>
+          </div>
+          <div class="cal-body">
+            <!-- Row 1 -->
+            <div class="cal-cell"><div class="cal-num other-month">26</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">27</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">28</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">29</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">30</div></div>
+            <div class="cal-cell"><div class="cal-num">1</div></div>
+            <div class="cal-cell"><div class="cal-num">2</div></div>
+            <!-- Row 2 -->
+            <div class="cal-cell"><div class="cal-num">3</div><div class="cal-event">HD Session – 14 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">4</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">5</div><div class="cal-event">HD Session – 16 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">6</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">7</div><div class="cal-event">HD Session – 15 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">8</div><div class="cal-event blue">LIS Lab Results</div></div>
+            <div class="cal-cell"><div class="cal-num">9</div></div>
+            <!-- Row 3 -->
+            <div class="cal-cell"><div class="cal-num">10</div><div class="cal-event">HD Session – 14 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">11</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">12</div><div class="cal-event">HD Session – 16 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">13</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">14</div><div class="cal-event">HD Session – 15 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">15</div><div class="cal-event blue">LIS Lab Results</div></div>
+            <div class="cal-cell"><div class="cal-num">16</div></div>
+            <!-- Row 4 -->
+            <div class="cal-cell"><div class="cal-num">17</div><div class="cal-event">HD Session – 14 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">18</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">19</div><div class="cal-event">HD Session – 16 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">20</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">21</div><div class="cal-event">HD Session – 15 pts</div></div>
+            <div class="cal-cell today-cell"><div class="cal-num today">22</div><div class="cal-event blue">Monthly Reports Due</div></div>
+            <div class="cal-cell"><div class="cal-num">23</div></div>
+            <!-- Row 5 -->
+            <div class="cal-cell"><div class="cal-num">24</div><div class="cal-event">HD Session – 14 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">25</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">26</div><div class="cal-event">HD Session – 16 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">27</div><div class="cal-event teal">HD Session – 18 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">28</div><div class="cal-event">HD Session – 15 pts</div></div>
+            <div class="cal-cell"><div class="cal-num">29</div><div class="cal-event blue">LIS Lab Results</div></div>
+            <div class="cal-cell"><div class="cal-num">30</div></div>
+            <!-- Row 6 -->
+            <div class="cal-cell"><div class="cal-num">31</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">1</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">2</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">3</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">4</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">5</div></div>
+            <div class="cal-cell"><div class="cal-num other-month">6</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicDesk — Calendar & Appointments</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+
+  .sidebar { width: 230px; background: #1a3a4a; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 14px 16px; background: #0f2535; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a4a5a; }
+  .logo-icon { width: 32px; height: 32px; background: #2a9d8f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .logo-text { color: #fff; font-size: 14px; font-weight: 700; }
+  .logo-sub { color: #7fbbcc; font-size: 9px; }
+  .sidebar-section { padding: 8px 10px 4px; color: #7fbbcc; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar-item { padding: 9px 14px; color: #c8dde4; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 9px; border-radius: 6px; margin: 1px 6px; }
+  .sidebar-item.active { background: #2a9d8f; color: #fff; }
+  .sidebar-item.sub { padding-left: 32px; font-size: 11px; color: #a0c4cc; }
+  .sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { background: #1a3a4a; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2a9d8f; flex-shrink: 0; }
+  .topbar-title { color: #fff; font-size: 15px; font-weight: 700; }
+  .topbar-subtitle { color: #7fbbcc; font-size: 11px; }
+  .topbar-badge { background: rgba(42,157,143,0.2); border: 1px solid #2a9d8f; color: #7fdbcc; font-size: 10px; padding: 4px 10px; border-radius: 20px; }
+  .profile-btn { background: #2a9d8f; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; }
+
+  .content { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px; gap: 12px; }
+
+  /* Calendar toolbar */
+  .cal-toolbar { background: #fff; border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); flex-shrink: 0; }
+  .nav-btn { background: #f0f4f6; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: #1a3a4a; }
+  .month-label { font-size: 15px; font-weight: 700; color: #1a3a4a; min-width: 180px; }
+  .view-btns { display: flex; gap: 4px; margin-left: auto; }
+  .view-btn { padding: 6px 12px; border: 1px solid #d1e5ec; border-radius: 6px; font-size: 11px; cursor: pointer; background: #fff; color: #5a7a8a; }
+  .view-btn.active { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+  .new-randevu-btn { background: #2a9d8f; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600; }
+
+  /* Doctor filter pills */
+  .doc-pills { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+  .doc-pill { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 2px solid; }
+
+  /* Calendar grid */
+  .cal-wrap { flex: 1; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; flex-direction: column; overflow: hidden; }
+  .cal-header { display: grid; grid-template-columns: 60px repeat(7, 1fr); background: #f8fafb; border-bottom: 2px solid #e8eef2; }
+  .cal-header-time { padding: 10px; font-size: 10px; color: #9ab0bb; text-align: center; }
+  .cal-header-day { padding: 10px 6px; text-align: center; border-left: 1px solid #e8eef2; }
+  .day-name { font-size: 10px; color: #7f9aaa; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+  .day-num { font-size: 20px; font-weight: 700; color: #1a3a4a; margin-top: 2px; }
+  .day-today .day-num { background: #2a9d8f; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 2px auto 0; font-size: 16px; }
+  .cal-body { flex: 1; overflow-y: auto; display: grid; grid-template-columns: 60px repeat(7, 1fr); }
+  .time-col { display: flex; flex-direction: column; }
+  .time-slot { height: 54px; padding: 4px 6px 0; text-align: right; }
+  .time-label { font-size: 10px; color: #9ab0bb; }
+  .day-col { border-left: 1px solid #f0f4f6; position: relative; }
+  .slot { height: 54px; border-bottom: 1px solid #f8fafb; }
+  .event { position: absolute; left: 3px; right: 3px; border-radius: 6px; padding: 4px 6px; cursor: pointer; overflow: hidden; z-index: 2; }
+  .event-title { font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .event-sub { font-size: 9px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Color classes */
+  .ev-teal  { background: rgba(42,157,143,0.15); border-left: 3px solid #2a9d8f; color: #1a6b5a; }
+  .ev-blue  { background: rgba(41,128,185,0.15); border-left: 3px solid #2980b9; color: #1a3a6b; }
+  .ev-purple{ background: rgba(142,68,173,0.15); border-left: 3px solid #8e44ad; color: #5b2c6f; }
+  .ev-orange{ background: rgba(230,126,34,0.15); border-left: 3px solid #e67e22; color: #7d5a1e; }
+  .ev-red   { background: rgba(192,57,43,0.15); border-left: 3px solid #c0392b; color: #7b241c; }
+  .ev-green { background: rgba(39,174,96,0.15); border-left: 3px solid #27ae60; color: #1e6b42; }
+
+  .stat-row { display: flex; gap: 10px; flex-shrink: 0; }
+  .stat-card { flex: 1; background: #fff; border-radius: 10px; padding: 12px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .stat-num { font-size: 22px; font-weight: 800; color: #1a3a4a; }
+  .stat-label { font-size: 10px; color: #7f9aaa; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏥</div>
+    <div>
+      <div class="logo-text">ClinicDesk</div>
+      <div class="logo-sub">Clinic Management System</div>
+    </div>
+  </div>
+  <div style="padding: 10px 0; flex: 1; overflow-y: auto;">
+    <div class="sidebar-section">Main Menu</div>
+    <div class="sidebar-item"><span class="sidebar-icon">👥</span> View All Patients</div>
+    <div class="sidebar-item active"><span class="sidebar-icon">📅</span> Calendar - Appointments</div>
+    <div class="sidebar-section" style="margin-top:6px;">Patient Operations</div>
+    <div class="sidebar-item sub">New Patient Registration</div>
+    <div class="sidebar-item sub">Update Patient</div>
+    <div class="sidebar-item sub">Examination</div>
+    <div class="sidebar-item sub">Patient Follow-up</div>
+    <div class="sidebar-item sub">Pathology</div>
+    <div class="sidebar-item sub">Medication Treatment</div>
+    <div class="sidebar-item sub">Laboratory</div>
+    <div class="sidebar-item sub">Patient Documents</div>
+    <div class="sidebar-item sub">Patient List</div>
+    <div class="sidebar-item sub">Discharge Summary</div>
+    <div class="sidebar-item sub">Lab Test Request</div>
+    <div class="sidebar-section" style="margin-top:6px;">System</div>
+    <div class="sidebar-item"><span class="sidebar-icon">📊</span> Reports</div>
+    <div class="sidebar-item"><span class="sidebar-icon">⚙️</span> Settings</div>
+  </div>
+  <div style="padding: 12px; border-top: 1px solid #2a4a5a;">
+    <div style="font-size: 10px; color: #5a8090;">Logged-in User</div>
+    <div style="font-size: 11px; color: #c8dde4; font-weight: 600; margin-top: 2px;">🔒 Confidential Client</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🔒 Confidential Client — Clinic</div>
+      <div class="topbar-subtitle">ClinicDesk · Calendar & Appointments Module</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-badge">📅 Jan 8–14, 2025</div>
+      <div class="topbar-badge">📌 Today: Wednesday</div>
+      <button class="profile-btn">👤 Profile</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num" style="color:#2a9d8f;">14</div><div class="stat-label">Today's Appointments</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#2980b9;">68</div><div class="stat-label">This Week's Appointments</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#e67e22;">3</div><div class="stat-label">Pending Confirmation</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#27ae60;">9</div><div class="stat-label">Completed (Today)</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#c0392b;">2</div><div class="stat-label">Cancelled / No-show</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="cal-toolbar">
+      <button class="nav-btn">‹</button>
+      <div class="month-label">January 2025 — Weekly View</div>
+      <button class="nav-btn">›</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:10px;color:#7f9aaa;font-weight:600;">Filter:</span>
+        <div class="doc-pill" style="border-color:#2a9d8f;color:#2a9d8f;background:rgba(42,157,143,0.08);">● Dr. Andrew K.</div>
+        <div class="doc-pill" style="border-color:#2980b9;color:#2980b9;background:rgba(41,128,185,0.08);">● Dr. Frances S.</div>
+        <div class="doc-pill" style="border-color:#8e44ad;color:#8e44ad;background:rgba(142,68,173,0.08);">● Dr. Martin D.</div>
+        <div class="doc-pill" style="border-color:#ccc;color:#aaa;background:#f8fafb;">All</div>
+      </div>
+      <div class="view-btns" style="margin-left:auto;">
+        <button class="view-btn">Monthly</button>
+        <button class="view-btn active">Weekly</button>
+        <button class="view-btn">Daily</button>
+      </div>
+      <button class="new-randevu-btn">+ New Appointment</button>
+    </div>
+
+    <!-- Calendar -->
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-header-time"></div>
+        <div class="cal-header-day"><div class="day-name">Mon</div><div class="day-num">8</div></div>
+        <div class="cal-header-day"><div class="day-name">Tue</div><div class="day-num">9</div></div>
+        <div class="cal-header-day day-today"><div class="day-name">Wed</div><div class="day-num">10</div></div>
+        <div class="cal-header-day"><div class="day-name">Thu</div><div class="day-num">11</div></div>
+        <div class="cal-header-day"><div class="day-name">Fri</div><div class="day-num">12</div></div>
+        <div class="cal-header-day"><div class="day-name">Sat</div><div class="day-num">13</div></div>
+        <div class="cal-header-day"><div class="day-name">Sun</div><div class="day-num">14</div></div>
+      </div>
+
+      <div class="cal-body">
+        <!-- Time labels -->
+        <div class="time-col">
+          <div class="time-slot"><div class="time-label">08:00</div></div>
+          <div class="time-slot"><div class="time-label">09:00</div></div>
+          <div class="time-slot"><div class="time-label">10:00</div></div>
+          <div class="time-slot"><div class="time-label">11:00</div></div>
+          <div class="time-slot"><div class="time-label">12:00</div></div>
+          <div class="time-slot"><div class="time-label">13:00</div></div>
+          <div class="time-slot"><div class="time-label">14:00</div></div>
+          <div class="time-slot"><div class="time-label">15:00</div></div>
+          <div class="time-slot"><div class="time-label">16:00</div></div>
+          <div class="time-slot"><div class="time-label">17:00</div></div>
+        </div>
+
+        <!-- Monday -->
+        <div class="day-col">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="event ev-teal" style="top:10px; height:46px;"><div class="event-title">Andrew Y.</div><div class="event-sub">08:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-blue" style="top:64px; height:46px;"><div class="event-title">Frances D.</div><div class="event-sub">09:00 · Dr. Frances S.</div></div>
+          <div class="event ev-purple" style="top:118px; height:46px;"><div class="event-title">Michael K.</div><div class="event-sub">10:00 · Dr. Martin D.</div></div>
+          <div class="event ev-teal" style="top:280px; height:46px;"><div class="event-title">Zoe A.</div><div class="event-sub">13:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-orange" style="top:388px; height:46px;"><div class="event-title">Harold B.</div><div class="event-sub">15:00 · Dr. Martin D.</div></div>
+        </div>
+
+        <!-- Tuesday -->
+        <div class="day-col">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="event ev-blue" style="top:10px; height:46px;"><div class="event-title">Ella Y.</div><div class="event-sub">08:00 · Dr. Frances S.</div></div>
+          <div class="event ev-teal" style="top:118px; height:46px;"><div class="event-title">Oscar S.</div><div class="event-sub">10:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-purple" style="top:172px; height:46px;"><div class="event-title">Nora K.</div><div class="event-sub">11:00 · Dr. Martin D.</div></div>
+          <div class="event ev-green" style="top:334px; height:46px;"><div class="event-title">Bradley T.</div><div class="event-sub">14:00 · Dr. Frances S.</div></div>
+        </div>
+
+        <!-- Wednesday (today) -->
+        <div class="day-col" style="background: rgba(42,157,143,0.03);">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="event ev-teal" style="top:10px; height:46px;"><div class="event-title">Sonia A.</div><div class="event-sub">08:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-blue" style="top:64px; height:46px;"><div class="event-title">Kenneth Y.</div><div class="event-sub">09:00 · Dr. Frances S.</div></div>
+          <div class="event ev-purple" style="top:118px; height:99px;"><div class="event-title">Rachel O.</div><div class="event-sub">10:00–11:30 · Dr. Martin D.</div></div>
+          <div class="event ev-orange" style="top:226px; height:46px;"><div class="event-title">Ian C.</div><div class="event-sub">12:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-red" style="top:334px; height:46px;"><div class="event-title" style="color:#c0392b;">⚠ CANCELLED</div><div class="event-sub">Diana P. · Dr. Frances S.</div></div>
+          <div class="event ev-teal" style="top:388px; height:46px;"><div class="event-title">Travis G.</div><div class="event-sub">15:00 · Dr. Andrew K.</div></div>
+          <!-- Now indicator -->
+          <div style="position:absolute; left:0; right:0; top:145px; height:2px; background:#2a9d8f; z-index:5;">
+            <div style="position:absolute; left:-4px; top:-4px; width:10px; height:10px; background:#2a9d8f; border-radius:50%;"></div>
+          </div>
+        </div>
+
+        <!-- Thursday -->
+        <div class="day-col">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="event ev-blue" style="top:64px; height:46px;"><div class="event-title">Andrew Y.</div><div class="event-sub">09:00 · Dr. Frances S.</div></div>
+          <div class="event ev-teal" style="top:172px; height:46px;"><div class="event-title">Michael K.</div><div class="event-sub">11:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-green" style="top:280px; height:46px;"><div class="event-title">Ella Y.</div><div class="event-sub">13:00 · Dr. Martin D.</div></div>
+          <div class="event ev-purple" style="top:442px; height:46px;"><div class="event-title">Harold B.</div><div class="event-sub">16:00 · Dr. Frances S.</div></div>
+        </div>
+
+        <!-- Friday -->
+        <div class="day-col">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="event ev-teal" style="top:10px; height:46px;"><div class="event-title">Oscar S.</div><div class="event-sub">08:00 · Dr. Andrew K.</div></div>
+          <div class="event ev-orange" style="top:118px; height:46px;"><div class="event-title">Nora K.</div><div class="event-sub">10:00 · Dr. Martin D.</div></div>
+          <div class="event ev-blue" style="top:226px; height:46px;"><div class="event-title">Zoe A.</div><div class="event-sub">12:00 · Dr. Frances S.</div></div>
+          <div class="event ev-teal" style="top:334px; height:46px;"><div class="event-title">Bradley T.</div><div class="event-sub">14:00 · Dr. Andrew K.</div></div>
+        </div>
+
+        <!-- Saturday -->
+        <div class="day-col" style="background: rgba(0,0,0,0.01);">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="event ev-purple" style="top:10px; height:46px;"><div class="event-title">Kenneth Y.</div><div class="event-sub">08:00 · Dr. Martin D.</div></div>
+          <div class="event ev-teal" style="top:118px; height:46px;"><div class="event-title">Sonia A.</div><div class="event-sub">10:00 · Dr. Andrew K.</div></div>
+        </div>
+
+        <!-- Sunday -->
+        <div class="day-col" style="background: rgba(0,0,0,0.01);">
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#d1e5ec;font-size:11px;font-weight:600;">Closed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

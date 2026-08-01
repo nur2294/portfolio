@@ -3,17 +3,14 @@
 import Link from "next/link";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { projects } from "@/lib/data";
-
-const categoryLabels: Record<string, string> = {
-  "klinik-yonetim": "Klinik Yönetim",
-  "hasta-takip": "Hasta Takip",
-  "entegrasyon": "Entegrasyon",
-  "raporlama": "Raporlama",
-  "diger": "Diğer",
-};
+import { projectsEn } from "@/lib/data-en";
+import { getMockupSrc } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function FeaturedProjects() {
-  const featured = projects.filter((p) => p.featured).slice(0, 3);
+  const { t, lang } = useLanguage();
+  const projectList = lang === "en" ? projectsEn : projects;
+  const featured = projectList.filter((p) => p.featured).slice(0, 3);
 
   return (
     <section className="section-padding" style={{ background: "#f8f9fc" }}>
@@ -26,10 +23,10 @@ export default function FeaturedProjects() {
               className="text-4xl font-bold"
               style={{ fontFamily: "Playfair Display, serif", color: "#1e3a5f" }}
             >
-              Öne Çıkan Projeler
+              {t.portfolio.featuredHeading}
             </h2>
             <p className="mt-3 text-base" style={{ color: "#64748b", maxWidth: "480px" }}>
-              Sağlık sektöründe tamamladığım ve aktif kullanımda olan klinik yazılım projeleri.
+              {t.portfolio.featuredDesc}
             </p>
           </div>
           <Link
@@ -37,7 +34,7 @@ export default function FeaturedProjects() {
             className="inline-flex items-center gap-2 text-sm font-semibold transition-colors group whitespace-nowrap"
             style={{ color: "#1e3a5f" }}
           >
-            Tüm projeleri gör
+            {t.portfolio.viewAllProjects}
             <ArrowRight
               size={15}
               className="transition-transform group-hover:translate-x-1"
@@ -58,7 +55,7 @@ export default function FeaturedProjects() {
                 {project.mockup ? (
                   <>
                     <iframe
-                      src={project.mockup}
+                      src={getMockupSrc(project.mockup, lang)}
                       className="absolute inset-0 pointer-events-none"
                       style={{
                         border: "none",
@@ -99,7 +96,7 @@ export default function FeaturedProjects() {
                       color: "#e2c47a",
                     }}
                   >
-                    {categoryLabels[project.category]}
+                    {t.portfolio.categories[project.category as keyof typeof t.portfolio.categories] ?? project.category}
                   </span>
                 </div>
               </div>
@@ -139,7 +136,7 @@ export default function FeaturedProjects() {
                   className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors group/link"
                   style={{ color: "#1e3a5f" }}
                 >
-                  Case Study&apos;yi Oku
+                  {t.portfolio.readCaseStudy}
                   <ExternalLink
                     size={13}
                     className="transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"

@@ -1,8 +1,14 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Lang } from "./i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function getMockupSrc(src: string, lang: Lang) {
+  if (lang !== "en") return src;
+  return src.replace(/\.html$/, "-en.html");
 }
 
 export function formatDate(date: string | Date) {

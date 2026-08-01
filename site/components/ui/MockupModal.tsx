@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MockupModalProps {
   src: string;
@@ -12,6 +13,7 @@ interface MockupModalProps {
 
 export default function MockupModal({ src, title, mockups, onClose }: MockupModalProps) {
   const [activeIdx, setActiveIdx] = useState(0);
+  const { t } = useLanguage();
 
   const screens = mockups && mockups.length > 0
     ? mockups
@@ -122,7 +124,7 @@ export default function MockupModal({ src, title, mockups, onClose }: MockupModa
               style={{ background: "rgba(201,168,76,0.15)", color: "#e2c47a", border: "1px solid rgba(201,168,76,0.25)" }}
             >
               <ExternalLink size={12} />
-              Tam Ekran
+              {t.portfolio.fullscreen}
             </a>
             <button
               onClick={onClose}
@@ -150,7 +152,7 @@ export default function MockupModal({ src, title, mockups, onClose }: MockupModa
 
         {/* Hint */}
         <p className="text-center text-xs mt-2.5" style={{ color: "rgba(255,255,255,0.20)" }}>
-          {screens.length > 1 ? "← → tuşları ile ekranlar arası geçiş · " : ""}ESC veya arka plana tıklayarak kapat
+          {screens.length > 1 ? t.portfolio.hintMulti : ""}{t.portfolio.hintClose}
         </p>
       </div>
     </div>

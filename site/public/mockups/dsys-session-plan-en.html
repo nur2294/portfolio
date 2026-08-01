@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NephroGlobal — Session Treatment Plan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+
+.frame{width:1200px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.5)}
+.frame-bar{background:#334155;height:38px;display:flex;align-items:center;padding:0 16px;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+.url-bar{background:#1e293b;border-radius:6px;flex:1;height:24px;margin:0 16px;display:flex;align-items:center;padding:0 12px;font-size:11px;color:#64748b}
+
+.app{display:flex;height:680px}
+
+/* Sidebar */
+.sidebar{width:200px;background:#fff;border-right:1px solid #e5e7eb;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-brand{padding:12px 14px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
+.brand-text{font-size:13px;font-weight:700;color:#1f6b6b}
+.sidebar-search{margin:10px 10px 6px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:6px 10px;font-size:10px;color:#9ca3af;display:flex;align-items:center;justify-content:space-between}
+.patient-list{flex:1;overflow-y:auto}
+.patient-item{padding:8px 12px;border-bottom:1px solid #f3f4f6;cursor:grab;transition:background 0.1s}
+.patient-item:hover{background:#f0fafa}
+.patient-name{font-size:11px;font-weight:700;color:#111827}
+.patient-meta{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
+.patient-id{font-size:9px;color:#9ca3af}
+.patient-tags{display:flex;gap:2px}
+.ptag{font-size:8px;font-weight:700;padding:1px 3px;border-radius:2px;background:#f3f4f6;color:#374151}
+.patient-schedule{font-size:9px;color:#6b7280;margin-top:2px;line-height:1.5}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Top pill bar */
+.plan-topbar{background:#1f6b6b;padding:8px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.plan-title{background:rgba(255,255,255,0.20);color:white;font-size:11px;font-weight:700;padding:5px 12px;border-radius:4px;border:1px solid rgba(255,255,255,0.30)}
+
+.breadcrumb-bar{padding:7px 14px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:11px;color:#6b7280;display:flex;align-items:center;gap:5px;flex-shrink:0}
+
+/* Filter bar */
+.filter-bar{padding:7px 14px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.date-range{display:flex;align-items:center;gap:5px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:4px 10px;font-size:10px;font-weight:600;color:#374151}
+.shift-btn{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;border:none;cursor:pointer;color:white}
+.shift-morning{background:#f59e0b}
+.shift-noon{background:#8b5cf6}
+.shift-evening{background:#1e3a5f}
+.room-btn{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:600;border:1px solid #e5e7eb;background:#f9fafb;color:#374151;cursor:pointer}
+.room-btn.active{background:#1f6b6b;color:white;border-color:#1f6b6b}
+.btn-show{background:#16a34a;color:white;border:none;border-radius:4px;padding:4px 12px;font-size:10px;font-weight:700;cursor:pointer}
+.btn-prev{background:#3b82f6;color:white;border:none;border-radius:4px;padding:4px 12px;font-size:10px;font-weight:700;cursor:pointer}
+.toggle-wrap{display:flex;align-items:center;gap:4px;font-size:10px;color:#374151}
+.toggle{width:28px;height:14px;border-radius:7px;background:#e5e7eb;position:relative;cursor:pointer}
+.search-mini{display:flex;align-items:center;gap:5px;border:1px solid #e5e7eb;border-radius:4px;padding:4px 10px;font-size:10px;color:#9ca3af;background:#f9fafb;margin-left:auto}
+.save-btn{background:#1e3a5f;color:white;border:none;border-radius:4px;padding:5px 14px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px}
+
+/* Weekly grid */
+.week-grid{flex:1;display:flex;overflow:hidden}
+
+/* Day columns */
+.days-area{flex:1;display:flex;overflow-x:auto;overflow-y:auto}
+.day-col{min-width:155px;flex:1;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;overflow-y:auto}
+.day-col:last-child{border-right:none}
+.day-header{background:#f9fafb;padding:7px 10px;border-bottom:2px solid #e5e7eb;text-align:center;position:sticky;top:0;z-index:5}
+.day-name{font-size:11px;font-weight:800;color:#111827}
+.day-date{font-size:10px;color:#6b7280;margin-top:1px}
+.day-header.today{background:#ecfdf5;border-bottom-color:#1f6b6b}
+.day-header.today .day-name{color:#1f6b6b}
+
+/* Machine block */
+.machine-block{border-bottom:1px solid #e5e7eb;padding:8px}
+.machine-id{font-size:10px;font-weight:800;color:#374151;margin-bottom:6px;padding-bottom:4px;border-bottom:1px dashed #f3f4f6}
+
+/* Shift slot */
+.shift-slot{margin-bottom:6px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden}
+.shift-label{font-size:9px;font-weight:700;padding:3px 8px;color:white}
+.shift-label.morning{background:#f59e0b}
+.shift-label.noon{background:#8b5cf6}
+.shift-label.evening{background:#1e3a5f}
+.shift-time{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#f9fafb;border-bottom:1px solid #f3f4f6;font-size:9px;color:#6b7280}
+.time-box{background:white;border:1px solid #e5e7eb;border-radius:3px;padding:2px 5px;font-size:9px;font-weight:600;color:#374151}
+.patient-slot{padding:5px 8px;display:flex;align-items:center;justify-content:space-between}
+.slot-name{font-size:10px;font-weight:600;color:#111827}
+.slot-empty{width:100%;text-align:center;font-size:10px;font-weight:700;color:white;background:#3b82f6;border:none;border-radius:4px;padding:4px 8px;cursor:pointer}
+.del-btn{width:20px;height:20px;border-radius:3px;border:1px solid #fca5a5;background:#fee2e2;color:#ef4444;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="frame-bar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <div class="url-bar">🔒 nephroglobal.app/treatment/session-plan — 🔒 Confidential Client</div>
+  </div>
+  <div class="app">
+
+    <!-- Patient sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-text">NephroGlobal</div>
+        <span style="color:#9ca3af;font-size:14px">☰</span>
+      </div>
+      <div class="sidebar-search"><span>Search patient or drag...</span><span>🔍</span></div>
+      <div class="patient-list">
+
+        <div class="patient-item">
+          <div class="patient-name">Patient A — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***0481</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Mon·Morning 002 · Wed·Morning 002 · Fri·Morning 002</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient B — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***0977</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span></div></div>
+          <div class="patient-schedule">Tue·Morning 014 · Thu·Morning 014 · Sat·Morning 014</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient C — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***5152</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Tue·Morning 006 · Thu·Morning 006 · Sat·Morning 006</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient D — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***2951</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Mon·Evening 029 · Wed·Evening 029 · Fri·Evening 029</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient E — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***3390</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Mon·Morning 021 · Wed·Morning 021 · Fri·Morning 021</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient F — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***2247</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Mon·Evening 014 · Wed·Evening 014 · Fri·Evening 014</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient G — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***2446</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Mon·Evening 001 · Wed·Evening 001 · Fri·Evening 001</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient H — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***4398</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Thu·Morning 009 · Sat·Morning 009</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient I — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***6370</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">C</span></div></div>
+          <div class="patient-schedule">Mon·Afternoon 003 · Wed·Afternoon 003</div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-name">Patient J — 🔒</div>
+          <div class="patient-meta"><span class="patient-id">ID: ***8812</span><div class="patient-tags"><span class="ptag">B</span><span class="ptag">H</span></div></div>
+          <div class="patient-schedule">Tue·Afternoon 007 · Thu·Afternoon 007 · Sat·Afternoon 007</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="plan-topbar">
+        <div class="plan-title">Treatment Session Plan</div>
+      </div>
+
+      <div class="breadcrumb-bar">
+        <span style="color:#1f6b6b">🏠</span> Patient Care <span>/</span>
+        <span style="color:#1f6b6b">👤</span> Treatment <span>/</span>
+        <strong>Session Plan</strong>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="date-range">📅 18/05/2026 – 24/05/2026</div>
+        <button class="shift-btn shift-morning">Morning</button>
+        <button class="shift-btn shift-noon">Afternoon</button>
+        <button class="shift-btn shift-evening">Evening</button>
+        <button class="room-btn active">Room A — Negative</button>
+        <button class="room-btn">Room B — Negative</button>
+        <button class="room-btn">Intensive</button>
+        <button class="room-btn">Isolation/VIP</button>
+        <button class="room-btn">Positive</button>
+        <button class="btn-show">Show</button>
+        <button class="btn-prev">↩ Get Prev Session Plan</button>
+        <div class="toggle-wrap"><div class="toggle"></div>Show Empty Session</div>
+        <div class="search-mini">🔍 Search machine, patient...</div>
+        <button class="save-btn">💾 Save Session Plan</button>
+      </div>
+
+      <!-- Weekly grid -->
+      <div class="week-grid">
+        <div class="days-area">
+
+          <!-- Monday -->
+          <div class="day-col">
+            <div class="day-header"><div class="day-name">Monday</div><div class="day-date">18/05/2026</div></div>
+            <div class="machine-block">
+              <div class="machine-id">001 — Machine A</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient A — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient I — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient G — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+            </div>
+            <div class="machine-block">
+              <div class="machine-id">002 — Machine B</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient E — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient D — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient F — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tuesday -->
+          <div class="day-col">
+            <div class="day-header"><div class="day-name">Tuesday</div><div class="day-date">19/05/2026</div></div>
+            <div class="machine-block">
+              <div class="machine-id">001 — Machine A</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient B — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient J — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+            </div>
+            <div class="machine-block">
+              <div class="machine-id">002 — Machine B</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient C — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient J — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wednesday -->
+          <div class="day-col today-col">
+            <div class="day-header today"><div class="day-name">Wednesday</div><div class="day-date">20/05/2026</div></div>
+            <div class="machine-block">
+              <div class="machine-id">001 — Machine A</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient A — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient I — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient G — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+            </div>
+            <div class="machine-block">
+              <div class="machine-id">002 — Machine B</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient E — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient D — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient F — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thursday -->
+          <div class="day-col">
+            <div class="day-header"><div class="day-name">Thursday</div><div class="day-date">21/05/2026</div></div>
+            <div class="machine-block">
+              <div class="machine-id">001 — Machine A</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient B — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+            </div>
+            <div class="machine-block">
+              <div class="machine-id">002 — Machine B</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient D — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Friday -->
+          <div class="day-col">
+            <div class="day-header"><div class="day-name">Friday</div><div class="day-date">22/05/2026</div></div>
+            <div class="machine-block">
+              <div class="machine-id">001 — Machine A</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient A — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient I — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient G — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+            </div>
+            <div class="machine-block">
+              <div class="machine-id">002 — Machine B</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient E — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient F — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saturday -->
+          <div class="day-col">
+            <div class="day-header"><div class="day-name">Saturday</div><div class="day-date">23/05/2026</div></div>
+            <div class="machine-block">
+              <div class="machine-id">001 — Machine A</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient B — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient J — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+            </div>
+            <div class="machine-block">
+              <div class="machine-id">002 — Machine B</div>
+              <div class="shift-slot">
+                <div class="shift-label morning">Morning</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 AM</div><span>end</span><div class="time-box">12:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient C — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label noon">Afternoon</div>
+                <div class="shift-time"><span>start</span><div class="time-box">01:00 PM</div><span>end</span><div class="time-box">06:00 PM</div></div>
+                <div class="patient-slot"><span class="slot-name">Patient H — 🔒</span><button class="del-btn">🗑</button></div>
+              </div>
+              <div class="shift-slot">
+                <div class="shift-label evening">Evening</div>
+                <div class="shift-time"><span>start</span><div class="time-box">07:00 PM</div><span>end</span><div class="time-box">11:00 PM</div></div>
+                <div class="patient-slot"><button class="slot-empty">+ Select Patient</button></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- days-area -->
+      </div><!-- week-grid -->
+    </div><!-- main -->
+  </div><!-- app -->
+</div><!-- frame -->
+</body>
+</html>
